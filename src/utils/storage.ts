@@ -1,0 +1,114 @@
+/**
+ * Local Storage Manager
+ * A simple lightweight database solution using localStorage
+ */
+
+export interface Goal {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  status: 'active' | 'completed' | 'paused';
+  progress: number;
+  createdAt: string;
+  updatedAt: string;
+  dueDate?: string;
+}
+
+export interface Activity {
+  id: string;
+  goalId: string;
+  title: string;
+  date: string;
+  completed: boolean;
+  createdAt: string;
+}
+
+export interface UserSettings {
+  displayName: string;
+  email: string;
+  theme: 'light' | 'dark' | 'system';
+  defaultView: 'dashboard' | 'goals' | 'schedule';
+  notifications: {
+    email: boolean;
+    push: boolean;
+  };
+}
+
+class LocalStorage {
+  private readonly GOALS_KEY = 'goaltracker_goals';
+  private readonly ACTIVITIES_KEY = 'goaltracker_activities';
+  private readonly SETTINGS_KEY = 'goaltracker_settings';
+
+  // Goals
+  getGoals(): Goal[] {
+    const data = localStorage.getItem(this.GOALS_KEY);
+    return data ? JSON.parse(data) : [];
+  }
+
+  saveGoal(goal: Goal): void {
+    const goals = this.getGoals();
+    const index = goals.findIndex(g => g.id === goal.id);
+    if (index >= 0) {
+      goals[index] = goal;
+    } else {
+      goals.push(goal);
+    }
+    localStorage.setItem(this.GOALS_KEY, JSON.stringify(goals));
+  }
+
+  deleteGoal(goalId: string): void {
+    const goals = this.getGoals().filter(g => g.id !== goalId);
+    localStorage.setItem(this.GOALS_KEY, JSON.stringify(goals));
+  }
+
+  // Activities
+  getActivities(): Activity[] {
+    const data = localStorage.getItem(this.ACTIVITIES_KEY);
+    return data ? JSON.parse(data) : [];
+  }
+
+  saveActivity(activity: Activity): void {
+    const activities = this.getActivities();
+    const index = activities.findIndex(a => a.id === activity.id);
+    if (index >= 0) {
+      activities[index] = activity;
+    } else {
+      activities.push(activity);
+    }
+    localStorage.setItem(this.ACTIVITIES_KEY, JSON.stringify(activities));
+  }
+
+  deleteActivity(activityId: string): void {
+    const activities = this.getActivities().filter(a => a.id !== activityId);
+    localStorage.setItem(this.ACTIVITIES_KEY, JSON.stringify(activities));
+  }
+
+  // Settings
+  getSettings(): UserSettings {
+    const data = localStorage.getItem(this.SETTINGS_KEY);
+    return data ? JSON.parse(data) : {
+      displayName: '',
+      email: '',
+      theme: 'light',
+      defaultView: 'dashboard',
+      notifications: {
+        email: false,
+        push: false,
+      },
+    };
+  }
+
+  saveSettings(settings: UserSettings): void {
+    localStorage.setItem(this.SETTINGS_KEY, JSON.stringify(settings));
+  }
+
+  // Utility methods
+  clearAll(): void {
+    localStorage.removeItem(this.GOALS_KEY);
+    localStorage.removeItem(this.ACTIVITIES_KEY);
+    localStorage.removeItem(this.SETTINGS_KEY);
+  }
+}
+
+export const storage = new LocalStorage();
