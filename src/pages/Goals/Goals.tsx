@@ -1,36 +1,239 @@
+import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { useApp } from '../../contexts/AppContext';
+import { Plus } from 'lucide-react';
+import type { Goal, GoalCategory, GoalStatus } from '../../types';
+import { GoalForm, SubGoalForm, GoalNotificationSettings } from '../../components/Goals';
+import { GoalFilters, GoalListItem, EmptyGoalsState } from '../../components/GoalsList';
+
 const Goals = () => {
+  const { goals, deleteGoal, updateGoal, addGoal, addSubGoal, updateSubGoal, toggleSubGoal, deleteSubGoal } = useApp();
+  const [searchParams] = useSearchParams();
+  const selectedGoalId = searchParams.get('goalId');
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState<GoalCategory | 'all'>('all');
+  const [filterStatus, setFilterStatus] = useState<GoalStatus | 'all'>('all');
+  const [groupByPriority, setGroupByPriority] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
+  const [expandedGoals, setExpandedGoals] = useState<Set<string>>(new Set(selectedGoalId ? [selectedGoalId] : []));
+  const [editingSubGoal, setEditingSubGoal] = useState<{ goalId: string; subGoal: any } | null>(null);
+  const [addingSubGoalTo, setAddingSubGoalTo] = useState<string | null>(null);
+  const [notificationGoal, setNotificationGoal] = useState<Goal | null>(null);
+  const goalRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  // Expand selected goal if provided in URL and scroll to it
+  useEffect(() => {
+    if (selectedGoalId) {
+      setExpandedGoals(prev => {
+        if (!prev.has(selectedGoalId)) {
+          return new Set([...prev, selectedGoalId]);
+        }
+        return prev;
+      });
+
+      // Scroll to goal after a brief delay to ensure rendering
+      setTimeout(() => {
+        const element = goalRefs.current[selectedGoalId];
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Add a highlight effect
+          element.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2');
+          setTimeout(() => {
+            element.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
+          }, 2000);
+        }
+      }, 100);
+    }
+  }, [selectedGoalId]);
+
+  const filteredGoals = goals.filter(goal => {
+    const matchesSearch = goal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         goal.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = filterCategory === 'all' || goal.category === filterCategory;
+    const matchesStatus = filterStatus === 'all' || goal.status === filterStatus;
+    return matchesSearch && matchesCategory && matchesStatus;
+  });
+
+  const toggleExpanded = (goalId: string) => {
+    const newExpanded = new Set(expandedGoals);
+    if (newExpanded.has(goalId)) {
+      newExpanded.delete(goalId);
+    } else {
+      newExpanded.add(goalId);
+    }
+    setExpandedGoals(newExpanded);
+  };
+
+  const handleEdit = (goal: Goal) => {
+    setEditingGoal(goal);
+    setShowForm(true);
+  };
+
+  const handleDelete = (goalId: string) => {
+    if (confirm('Are you sure you want to delete this goal?')) {
+      deleteGoal(goalId);
+    }
+  };
+
+  const handleDuplicate = (goal: Goal) => {
+    const duplicatedGoal: Goal = {
+      ...goal,
+      id: Date.now().toString(),
+      title: `${goal.title} (Copy)`,
+      createdAt: new Date(),
+      subGoals: goal.subGoals.map(sg => ({
+        ...sg,
+        id: `${Date.now()}-${Math.random()}`,
+        completed: false,
+        createdAt: new Date(),
+        completedAt: undefined,
+      })),
+    };
+    addGoal(duplicatedGoal);
+  };
+
+  const groupedGoals = groupByPriority
+    ? {
+        high: filteredGoals.filter(g => g.priority === 'high'),
+        medium: filteredGoals.filter(g => g.priority === 'medium'),
+        low: filteredGoals.filter(g => g.priority === 'low'),
+      }
+    : null;
+
+  const renderGoal = (goal: Goal) => {
+    const isExpanded = expandedGoals.has(goal.id);
+    return (
+      <div key={goal.id} ref={el => goalRefs.current[goal.id] = el} className="transition-all duration-300 rounded-lg">
+        <GoalListItem
+          goal={goal}
+          isExpanded={isExpanded}
+          onToggleExpand={() => toggleExpanded(goal.id)}
+          onEdit={() => handleEdit(goal)}
+          onDelete={() => handleDelete(goal.id)}
+          onDuplicate={() => handleDuplicate(goal)}
+          onNotificationSettings={() => setNotificationGoal(goal)}
+          onAddSubGoal={() => setAddingSubGoalTo(goal.id)}
+          onEditSubGoal={(subGoal) => setEditingSubGoal({ goalId: goal.id, subGoal })}
+          onToggleSubGoal={(subGoalId) => toggleSubGoal(goal.id, subGoalId)}
+          onDeleteSubGoal={(subGoalId) => deleteSubGoal(goal.id, subGoalId)}
+          onStatusChange={(status) => updateGoal(goal.id, { ...goal, status })}
+        />
+      </div>
+    );
+  };
+
+  if (showForm) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <GoalForm
+          goal={editingGoal || undefined}
+          onClose={() => {
+            setShowForm(false);
+            setEditingGoal(null);
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Goals</h1>
-          <p className="mt-2 text-gray-600">Manage and track your goals</p>
+          <h1 className="text-gray-900 mb-2">My Goals</h1>
+          <p className="text-gray-600">Manage and track your goals</p>
         </div>
-        <button className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
-          + Add New Goal
+        <button
+          onClick={() => setShowForm(true)}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+        >
+          <Plus className="w-5 h-5" />
+          Create Goal
         </button>
       </div>
 
+      {/* Filters */}
+      <GoalFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        filterCategory={filterCategory}
+        onCategoryChange={setFilterCategory}
+        filterStatus={filterStatus}
+        onStatusChange={setFilterStatus}
+        groupByPriority={groupByPriority}
+        onGroupByPriorityChange={setGroupByPriority}
+      />
+
       {/* Goals List */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Your Goals</h2>
+      {filteredGoals.length === 0 ? (
+        <EmptyGoalsState
+          hasFilters={searchTerm !== '' || filterCategory !== 'all' || filterStatus !== 'all'}
+          onCreateGoal={() => setShowForm(true)}
+        />
+      ) : (
+        <div className="space-y-4">
+          {groupByPriority ? (
+            <>
+              {groupedGoals.high.length > 0 && (
+                <div className="space-y-4">
+                  <h4 className="text-gray-900 font-bold">High Priority</h4>
+                  {groupedGoals.high.map(renderGoal)}
+                </div>
+              )}
+              {groupedGoals.medium.length > 0 && (
+                <div className="space-y-4">
+                  <h4 className="text-gray-900 font-bold">Medium Priority</h4>
+                  {groupedGoals.medium.map(renderGoal)}
+                </div>
+              )}
+              {groupedGoals.low.length > 0 && (
+                <div className="space-y-4">
+                  <h4 className="text-gray-900 font-bold">Low Priority</h4>
+                  {groupedGoals.low.map(renderGoal)}
+                </div>
+              )}
+            </>
+          ) : (
+            filteredGoals.map(renderGoal)
+          )}
         </div>
-        <div className="p-6">
-          <div className="text-center py-12">
-            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No goals yet</h3>
-            <p className="mt-1 text-sm text-gray-500">Get started by creating a new goal.</p>
-            <div className="mt-6">
-              <button className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-                + Create your first goal
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      )}
+      
+      {/* Sub-goal Forms */}
+      {addingSubGoalTo && (
+        <SubGoalForm
+          onSave={(data) => {
+            addSubGoal(addingSubGoalTo, data);
+            setAddingSubGoalTo(null);
+          }}
+          onClose={() => setAddingSubGoalTo(null)}
+        />
+      )}
+      {editingSubGoal && (
+        <SubGoalForm
+          subGoal={editingSubGoal.subGoal}
+          onSave={(data) => {
+            updateSubGoal(editingSubGoal.goalId, editingSubGoal.subGoal.id, data);
+            setEditingSubGoal(null);
+          }}
+          onClose={() => setEditingSubGoal(null)}
+        />
+      )}
+
+      {/* Notification Settings Modal */}
+      {notificationGoal && (
+        <GoalNotificationSettings
+          goal={notificationGoal}
+          onClose={() => setNotificationGoal(null)}
+          onSave={(notifications) => {
+            updateGoal(notificationGoal.id, { ...notificationGoal, notifications });
+            setNotificationGoal(null);
+          }}
+        />
+      )}
     </div>
   );
 };

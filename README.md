@@ -39,7 +39,7 @@ src/
 
 ### Prerequisites
 
-- Node.js (v16 or higher)
+- Node.js (v20.19+ or v22.12+ required for Vite 7)
 - npm or yarn
 
 ### Installation

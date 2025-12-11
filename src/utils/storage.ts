@@ -1,21 +1,11 @@
 /**
  * Local Storage Manager
  * A simple lightweight database solution using localStorage
+ * 
+ * Note: Types are now defined in src/types/index.ts
  */
 
-export interface Goal {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  status: 'active' | 'completed' | 'paused';
-  progress: number;
-  createdAt: string;
-  updatedAt: string;
-  dueDate?: string;
-}
-
-export interface Activity {
+interface Activity {
   id: string;
   goalId: string;
   title: string;
@@ -24,31 +14,20 @@ export interface Activity {
   createdAt: string;
 }
 
-export interface UserSettings {
-  displayName: string;
-  email: string;
-  theme: 'light' | 'dark' | 'system';
-  defaultView: 'dashboard' | 'goals' | 'schedule';
-  notifications: {
-    email: boolean;
-    push: boolean;
-  };
-}
-
 class LocalStorage {
   private readonly GOALS_KEY = 'goaltracker_goals';
   private readonly ACTIVITIES_KEY = 'goaltracker_activities';
   private readonly SETTINGS_KEY = 'goaltracker_settings';
 
-  // Goals
-  getGoals(): Goal[] {
+  // Goals - accepts any goal-like object for flexibility
+  getGoals(): any[] {
     const data = localStorage.getItem(this.GOALS_KEY);
     return data ? JSON.parse(data) : [];
   }
 
-  saveGoal(goal: Goal): void {
+  saveGoal(goal: any): void {
     const goals = this.getGoals();
-    const index = goals.findIndex(g => g.id === goal.id);
+    const index = goals.findIndex((g: any) => g.id === goal.id);
     if (index >= 0) {
       goals[index] = goal;
     } else {
@@ -85,7 +64,7 @@ class LocalStorage {
   }
 
   // Settings
-  getSettings(): UserSettings {
+  getSettings(): any {
     const data = localStorage.getItem(this.SETTINGS_KEY);
     return data ? JSON.parse(data) : {
       displayName: '',
@@ -99,7 +78,7 @@ class LocalStorage {
     };
   }
 
-  saveSettings(settings: UserSettings): void {
+  saveSettings(settings: any): void {
     localStorage.setItem(this.SETTINGS_KEY, JSON.stringify(settings));
   }
 
