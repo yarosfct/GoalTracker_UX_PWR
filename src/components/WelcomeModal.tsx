@@ -8,7 +8,7 @@ interface WelcomeModalProps {
 }
 
 export function WelcomeModal({ onClose }: WelcomeModalProps) {
-  const { goals, addGoal } = useApp();
+  const { addGoal } = useApp();
   const [step, setStep] = useState(1);
 
   const handleLoadSampleData = () => {
@@ -149,6 +149,7 @@ export function WelcomeModal({ onClose }: WelcomeModalProps) {
     </div>
   );
 }
+
 
 
 

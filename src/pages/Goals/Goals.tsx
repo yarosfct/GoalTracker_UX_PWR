@@ -105,7 +105,7 @@ const Goals = () => {
   const renderGoal = (goal: Goal) => {
     const isExpanded = expandedGoals.has(goal.id);
     return (
-      <div key={goal.id} ref={el => goalRefs.current[goal.id] = el} className="transition-all duration-300 rounded-lg">
+      <div key={goal.id} ref={el => { goalRefs.current[goal.id] = el; }} className="transition-all duration-300 rounded-lg">
         <GoalListItem
           goal={goal}
           isExpanded={isExpanded}
@@ -143,12 +143,15 @@ const Goals = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-gray-900 mb-2">My Goals</h1>
-          <p className="text-gray-600">Manage and track your goals</p>
+          <h1 className="mb-2" style={{ color: 'var(--text-primary)' }}>My Goals</h1>
+          <p style={{ color: 'var(--text-secondary)' }}>Manage and track your goals</p>
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+          className="px-4 py-2 text-white rounded-lg transition-colors flex items-center gap-2"
+          style={{ backgroundColor: 'var(--accent-primary)' }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--accent-primary-hover)'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--accent-primary)'}
         >
           <Plus className="w-5 h-5" />
           Create Goal
@@ -175,23 +178,23 @@ const Goals = () => {
         />
       ) : (
         <div className="space-y-4">
-          {groupByPriority ? (
+          {groupByPriority && groupedGoals ? (
             <>
               {groupedGoals.high.length > 0 && (
                 <div className="space-y-4">
-                  <h4 className="text-gray-900 font-bold">High Priority</h4>
+                  <h4 className="font-bold" style={{ color: 'var(--text-primary)' }}>High Priority</h4>
                   {groupedGoals.high.map(renderGoal)}
                 </div>
               )}
               {groupedGoals.medium.length > 0 && (
                 <div className="space-y-4">
-                  <h4 className="text-gray-900 font-bold">Medium Priority</h4>
+                  <h4 className="font-bold" style={{ color: 'var(--text-primary)' }}>Medium Priority</h4>
                   {groupedGoals.medium.map(renderGoal)}
                 </div>
               )}
               {groupedGoals.low.length > 0 && (
                 <div className="space-y-4">
-                  <h4 className="text-gray-900 font-bold">Low Priority</h4>
+                  <h4 className="font-bold" style={{ color: 'var(--text-primary)' }}>Low Priority</h4>
                   {groupedGoals.low.map(renderGoal)}
                 </div>
               )}

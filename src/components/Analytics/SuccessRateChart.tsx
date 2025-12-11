@@ -11,8 +11,14 @@ interface SuccessRateChartProps {
 
 export function SuccessRateChart({ data }: SuccessRateChartProps) {
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
-      <h2 className="text-gray-900 mb-6">Success Rate by Category</h2>
+    <div 
+      className="rounded-lg p-6"
+      style={{
+        backgroundColor: 'var(--bg-primary)',
+        border: '1px solid var(--border-primary)'
+      }}
+    >
+      <h2 className="mb-6" style={{ color: 'var(--text-primary)' }}>Success Rate by Category</h2>
       {data.length > 0 ? (
         <ResponsiveContainer width="100%" height={280}>
           <BarChart data={data} layout="vertical">
@@ -24,20 +30,21 @@ export function SuccessRateChart({ data }: SuccessRateChartProps) {
               contentStyle={{ borderRadius: '8px', border: '1px solid #E5E7EB' }}
             />
             <Bar dataKey="rate" radius={[0, 8, 8, 0]}>
-              {data.map((entry, index) => (
+              {data.map((_entry, index) => (
                 <Cell key={`cell-${index}`} fill="#3B82F6" />
               ))}
             </Bar>
           </BarChart>
         </ResponsiveContainer>
       ) : (
-        <div className="h-[280px] flex items-center justify-center text-gray-500">
+        <div className="h-[280px] flex items-center justify-center" style={{ color: 'var(--text-muted)' }}>
           No category data available
         </div>
       )}
     </div>
   );
 }
+
 
 
 

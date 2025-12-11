@@ -1,0 +1,366 @@
+/* ============================================
+   GoalTracker Theme System
+   Supports: Light/Dark × Minimal/Colorful
+   ============================================ */
+
+/* ============================================
+   BASE THEME VARIABLES
+   ============================================ */
+
+:root {
+  /* Default to Light Minimal theme */
+  --transition-speed: 200ms;
+  --transition-timing: ease-in-out;
+}
+
+/* ============================================
+   LIGHT MODE - MINIMAL THEME
+   ============================================ */
+
+[data-color-scheme="light"][data-theme="minimal"] {
+  /* Backgrounds */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f3f4f6;
+  --bg-hover: #f3f4f6;
+  --bg-selected: #e5e7eb;
+  
+  /* Text Colors */
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
+  --text-disabled: #9ca3af;
+  
+  /* Border Colors */
+  --border-primary: #e5e7eb;
+  --border-secondary: #d1d5db;
+  --border-hover: #9ca3af;
+  
+  /* Accent Colors */
+  --accent-primary: #3b82f6;
+  --accent-primary-hover: #2563eb;
+  --accent-primary-light: #dbeafe;
+  --accent-secondary: #6b7280;
+  --accent-success: #10b981;
+  --accent-warning: #f59e0b;
+  --accent-error: #ef4444;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  
+  /* Category Colors - Minimal (Subtle grays with slight tint) */
+  --category-study-bg: #eff6ff;
+  --category-study-text: #1e40af;
+  --category-study-border: #bfdbfe;
+  
+  --category-fitness-bg: #f0fdf4;
+  --category-fitness-text: #166534;
+  --category-fitness-border: #bbf7d0;
+  
+  --category-personal-bg: #faf5ff;
+  --category-personal-text: #6b21a8;
+  --category-personal-border: #e9d5ff;
+  
+  --category-work-bg: #fff7ed;
+  --category-work-text: #9a3412;
+  --category-work-border: #fed7aa;
+  
+  --category-finance-bg: #fefce8;
+  --category-finance-text: #854d0e;
+  --category-finance-border: #fef08a;
+  
+  --category-health-bg: #fef2f2;
+  --category-health-text: #991b1b;
+  --category-health-border: #fecaca;
+  
+  --category-other-bg: #f3f4f6;
+  --category-other-text: #374151;
+  --category-other-border: #d1d5db;
+  
+  /* Gradients - Minimal (Subtle) */
+  --gradient-primary: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  --gradient-accent: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+}
+
+/* ============================================
+   LIGHT MODE - COLORFUL THEME
+   ============================================ */
+
+[data-color-scheme="light"][data-theme="colorful"] {
+  /* Backgrounds */
+  --bg-primary: #ffffff;
+  --bg-secondary: #fafafa;
+  --bg-tertiary: #f5f5f5;
+  --bg-hover: #f0f9ff;
+  --bg-selected: #dbeafe;
+  
+  /* Text Colors */
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-disabled: #94a3b8;
+  
+  /* Border Colors */
+  --border-primary: #e2e8f0;
+  --border-secondary: #cbd5e1;
+  --border-hover: #94a3b8;
+  
+  /* Accent Colors - More vibrant */
+  --accent-primary: #3b82f6;
+  --accent-primary-hover: #2563eb;
+  --accent-primary-light: #dbeafe;
+  --accent-secondary: #8b5cf6;
+  --accent-success: #10b981;
+  --accent-warning: #f59e0b;
+  --accent-error: #ef4444;
+  
+  /* Shadows - More prominent */
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.15), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 12px 20px -3px rgba(0, 0, 0, 0.2), 0 4px 8px -2px rgba(0, 0, 0, 0.1);
+  
+  /* Category Colors - Colorful (Vibrant) */
+  --category-study-bg: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  --category-study-text: #1e40af;
+  --category-study-border: #93c5fd;
+  
+  --category-fitness-bg: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  --category-fitness-text: #065f46;
+  --category-fitness-border: #6ee7b7;
+  
+  --category-personal-bg: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+  --category-personal-text: #6b21a8;
+  --category-personal-border: #d8b4fe;
+  
+  --category-work-bg: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
+  --category-work-text: #9a3412;
+  --category-work-border: #fb923c;
+  
+  --category-finance-bg: linear-gradient(135deg, #fef08a 0%, #fde047 100%);
+  --category-finance-text: #854d0e;
+  --category-finance-border: #facc15;
+  
+  --category-health-bg: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+  --category-health-text: #991b1b;
+  --category-health-border: #f87171;
+  
+  --category-other-bg: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+  --category-other-text: #334155;
+  --category-other-border: #94a3b8;
+  
+  /* Gradients - Colorful (Vibrant) */
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-accent: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --gradient-card: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  --gradient-purple-blue: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+}
+
+/* ============================================
+   DARK MODE - MINIMAL THEME
+   ============================================ */
+
+[data-color-scheme="dark"][data-theme="minimal"] {
+  /* Backgrounds */
+  --bg-primary: #111827;
+  --bg-secondary: #1f2937;
+  --bg-tertiary: #374151;
+  --bg-hover: #374151;
+  --bg-selected: #4b5563;
+  
+  /* Text Colors */
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
+  --text-disabled: #6b7280;
+  
+  /* Border Colors */
+  --border-primary: #374151;
+  --border-secondary: #4b5563;
+  --border-hover: #6b7280;
+  
+  /* Accent Colors */
+  --accent-primary: #60a5fa;
+  --accent-primary-hover: #3b82f6;
+  --accent-primary-light: #1e3a8a;
+  --accent-secondary: #9ca3af;
+  --accent-success: #34d399;
+  --accent-warning: #fbbf24;
+  --accent-error: #f87171;
+  
+  /* Shadows - Darker */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
+  
+  /* Category Colors - Dark Minimal (Darker with subtle tints) */
+  --category-study-bg: #1e3a8a;
+  --category-study-text: #93c5fd;
+  --category-study-border: #1e40af;
+  
+  --category-fitness-bg: #065f46;
+  --category-fitness-text: #6ee7b7;
+  --category-fitness-border: #047857;
+  
+  --category-personal-bg: #581c87;
+  --category-personal-text: #d8b4fe;
+  --category-personal-border: #6b21a8;
+  
+  --category-work-bg: #7c2d12;
+  --category-work-text: #fdba74;
+  --category-work-border: #9a3412;
+  
+  --category-finance-bg: #713f12;
+  --category-finance-text: #fde047;
+  --category-finance-border: #854d0e;
+  
+  --category-health-bg: #7f1d1d;
+  --category-health-text: #fca5a5;
+  --category-health-border: #991b1b;
+  
+  --category-other-bg: #374151;
+  --category-other-text: #d1d5db;
+  --category-other-border: #4b5563;
+  
+  /* Gradients - Dark Minimal (Subtle) */
+  --gradient-primary: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+  --gradient-accent: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+}
+
+/* ============================================
+   DARK MODE - COLORFUL THEME
+   ============================================ */
+
+[data-color-scheme="dark"][data-theme="colorful"] {
+  /* Backgrounds */
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --bg-hover: #334155;
+  --bg-selected: #475569;
+  
+  /* Text Colors */
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-disabled: #64748b;
+  
+  /* Border Colors */
+  --border-primary: #334155;
+  --border-secondary: #475569;
+  --border-hover: #64748b;
+  
+  /* Accent Colors - Vibrant on dark */
+  --accent-primary: #60a5fa;
+  --accent-primary-hover: #3b82f6;
+  --accent-primary-light: #1e40af;
+  --accent-secondary: #a78bfa;
+  --accent-success: #34d399;
+  --accent-warning: #fbbf24;
+  --accent-error: #f87171;
+  
+  /* Shadows - More prominent on dark */
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.6), 0 2px 4px -1px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 12px 20px -3px rgba(0, 0, 0, 0.7), 0 4px 8px -2px rgba(0, 0, 0, 0.6);
+  
+  /* Category Colors - Dark Colorful (Vibrant on dark) */
+  --category-study-bg: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  --category-study-text: #93c5fd;
+  --category-study-border: #60a5fa;
+  
+  --category-fitness-bg: linear-gradient(135deg, #047857 0%, #10b981 100%);
+  --category-fitness-text: #6ee7b7;
+  --category-fitness-border: #34d399;
+  
+  --category-personal-bg: linear-gradient(135deg, #6b21a8 0%, #8b5cf6 100%);
+  --category-personal-text: #d8b4fe;
+  --category-personal-border: #a78bfa;
+  
+  --category-work-bg: linear-gradient(135deg, #9a3412 0%, #ea580c 100%);
+  --category-work-text: #fdba74;
+  --category-work-border: #fb923c;
+  
+  --category-finance-bg: linear-gradient(135deg, #854d0e 0%, #eab308 100%);
+  --category-finance-text: #fde047;
+  --category-finance-border: #facc15;
+  
+  --category-health-bg: linear-gradient(135deg, #991b1b 0%, #dc2626 100%);
+  --category-health-text: #fca5a5;
+  --category-health-border: #f87171;
+  
+  --category-other-bg: linear-gradient(135deg, #475569 0%, #64748b 100%);
+  --category-other-text: #cbd5e1;
+  --category-other-border: #94a3b8;
+  
+  /* Gradients - Dark Colorful (Vibrant) */
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-accent: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --gradient-card: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  --gradient-purple-blue: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+.theme-transition {
+  transition: background-color var(--transition-speed) var(--transition-timing),
+              color var(--transition-speed) var(--transition-timing),
+              border-color var(--transition-speed) var(--transition-timing);
+}
+
+/* Category badge utility */
+.category-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-width: 1px;
+}
+
+.category-badge.study {
+  background: var(--category-study-bg);
+  color: var(--category-study-text);
+  border-color: var(--category-study-border);
+}
+
+.category-badge.fitness {
+  background: var(--category-fitness-bg);
+  color: var(--category-fitness-text);
+  border-color: var(--category-fitness-border);
+}
+
+.category-badge.personal {
+  background: var(--category-personal-bg);
+  color: var(--category-personal-text);
+  border-color: var(--category-personal-border);
+}
+
+.category-badge.work {
+  background: var(--category-work-bg);
+  color: var(--category-work-text);
+  border-color: var(--category-work-border);
+}
+
+.category-badge.finance {
+  background: var(--category-finance-bg);
+  color: var(--category-finance-text);
+  border-color: var(--category-finance-border);
+}
+
+.category-badge.health {
+  background: var(--category-health-bg);
+  color: var(--category-health-text);
+  border-color: var(--category-health-border);
+}
+
+.category-badge.other {
+  background: var(--category-other-bg);
+  color: var(--category-other-text);
+  border-color: var(--category-other-border);
+}
+

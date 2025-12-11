@@ -130,8 +130,8 @@ const Analytics = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-gray-900 mb-2">Analytics Dashboard</h1>
-        <p className="text-gray-600">Track your progress and productivity insights</p>
+        <h1 className="mb-2" style={{ color: 'var(--text-primary)' }}>Analytics Dashboard</h1>
+        <p style={{ color: 'var(--text-secondary)' }}>Track your progress and productivity insights</p>
       </div>
 
       {/* Top Row: KPI Cards */}

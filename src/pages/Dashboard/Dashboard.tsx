@@ -60,8 +60,8 @@ const Dashboard = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Welcome Section */}
       <div className="mb-8">
-        <h1 className="text-3xl font-semibold text-gray-900 mb-2">Welcome back!</h1>
-        <p className="text-gray-600">Here's an overview of your goals and progress</p>
+        <h1 className="text-3xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Welcome back!</h1>
+        <p style={{ color: 'var(--text-secondary)' }}>Here's an overview of your goals and progress</p>
       </div>
 
       {/* Stats Grid */}
@@ -94,19 +94,28 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Recent Goals */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div 
+          className="rounded-lg p-6"
+          style={{
+            backgroundColor: 'var(--bg-primary)',
+            border: '1px solid var(--border-primary)'
+          }}
+        >
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-gray-900">Recent Goals</h2>
+            <h2 style={{ color: 'var(--text-primary)' }}>Recent Goals</h2>
             <button
               onClick={() => handleNavigate('goals')}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+              className="px-4 py-2 text-white rounded-lg transition-colors flex items-center gap-2"
+              style={{ backgroundColor: 'var(--accent-primary)' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--accent-primary-hover)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--accent-primary)'}
             >
               <Plus className="w-4 h-4" />
               New Goal
             </button>
           </div>
           {recentGoals.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8" style={{ color: 'var(--text-muted)' }}>
               No goals yet. Create your first goal to get started!
             </div>
           ) : (
@@ -128,11 +137,17 @@ const Dashboard = () => {
         </div>
 
         {/* Upcoming Deadlines */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-gray-900 mb-6">Upcoming Deadlines</h2>
+        <div 
+          className="rounded-lg p-6"
+          style={{
+            backgroundColor: 'var(--bg-primary)',
+            border: '1px solid var(--border-primary)'
+          }}
+        >
+          <h2 className="mb-6" style={{ color: 'var(--text-primary)' }}>Upcoming Deadlines</h2>
           
           {upcomingDeadlines.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8" style={{ color: 'var(--text-muted)' }}>
               No upcoming deadlines
             </div>
           ) : (

@@ -7,10 +7,16 @@ interface EmptyGoalsStateProps {
 
 export function EmptyGoalsState({ hasFilters, onCreateGoal }: EmptyGoalsStateProps) {
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-      <Target className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-      <h3 className="text-gray-900 mb-2">No goals found</h3>
-      <p className="text-gray-600 mb-4">
+    <div 
+      className="rounded-lg p-12 text-center"
+      style={{
+        backgroundColor: 'var(--bg-primary)',
+        border: '1px solid var(--border-primary)'
+      }}
+    >
+      <Target className="w-16 h-16 mx-auto mb-4" style={{ color: 'var(--border-secondary)' }} />
+      <h3 className="mb-2" style={{ color: 'var(--text-primary)' }}>No goals found</h3>
+      <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>
         {hasFilters
           ? 'Try adjusting your filters'
           : 'Create your first goal to get started'}
@@ -18,7 +24,10 @@ export function EmptyGoalsState({ hasFilters, onCreateGoal }: EmptyGoalsStatePro
       {!hasFilters && (
         <button
           onClick={onCreateGoal}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="px-4 py-2 text-white rounded-lg transition-colors"
+          style={{ backgroundColor: 'var(--accent-primary)' }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--accent-primary-hover)'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--accent-primary)'}
         >
           Create Your First Goal
         </button>
@@ -26,6 +35,7 @@ export function EmptyGoalsState({ hasFilters, onCreateGoal }: EmptyGoalsStatePro
     </div>
   );
 }
+
 
 
 

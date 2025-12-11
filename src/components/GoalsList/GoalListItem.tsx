@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { CheckCircle2, Circle, ChevronDown, ChevronRight, Calendar, Edit, Trash2, Copy, Bell } from 'lucide-react';
+import { ChevronDown, ChevronRight, Edit, Trash2, Copy, Bell } from 'lucide-react';
 import type { Goal, GoalCategory, GoalStatus, GoalPriority } from '../../types';
 import { SubGoalList } from './SubGoalList';
 import { GoalPrompt } from '../Goals';
@@ -63,17 +63,8 @@ export function GoalListItem({
     setShowAddSubGoalPrompt(false);
     onAddSubGoal();
   };
-  const getCategoryColor = (category: GoalCategory) => {
-    const colors: Record<string, string> = {
-      study: 'bg-blue-100 text-blue-700 border-blue-200',
-      fitness: 'bg-green-100 text-green-700 border-green-200',
-      personal: 'bg-purple-100 text-purple-700 border-purple-200',
-      work: 'bg-orange-100 text-orange-700 border-orange-200',
-      finance: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-      health: 'bg-red-100 text-red-700 border-red-200',
-      other: 'bg-gray-100 text-gray-700 border-gray-200',
-    };
-    return colors[category] || colors.other;
+  const getCategoryClass = (category: GoalCategory) => {
+    return `category-badge ${category}`;
   };
 
   const getPriorityColor = (priority: GoalPriority) => {
@@ -104,13 +95,22 @@ export function GoalListItem({
   const progress = getProgressPercentage();
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div 
+      className="rounded-lg overflow-hidden"
+      style={{
+        backgroundColor: 'var(--bg-primary)',
+        border: '1px solid var(--border-primary)'
+      }}
+    >
       {/* Goal Header */}
       <div className="p-6">
         <div className="flex items-start gap-4">
           <button
             onClick={onToggleExpand}
-            className="mt-1 text-gray-400 hover:text-gray-600"
+            className="mt-1"
+            style={{ color: 'var(--text-muted)' }}
+            onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
+            onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
           >
             {isExpanded ? (
               <ChevronDown className="w-5 h-5" />
@@ -121,10 +121,10 @@ export function GoalListItem({
           <div className="flex-1">
             <div className="flex items-start justify-between mb-2">
               <div>
-                <h3 className="text-gray-900 mb-2">{goal.title}</h3>
-                <p className="text-gray-600 mb-3">{goal.description}</p>
+                <h3 className="mb-2" style={{ color: 'var(--text-primary)' }}>{goal.title}</h3>
+                <p className="mb-3" style={{ color: 'var(--text-secondary)' }}>{goal.description}</p>
                 <div className="flex flex-wrap gap-2">
-                  <span className={`px-2 py-1 rounded text-sm border ${getCategoryColor(goal.category)}`}>
+                  <span className={getCategoryClass(goal.category)}>
                     {goal.category}
                   </span>
                   <span className={`px-2 py-1 rounded text-sm ${getStatusColor(goal.status)}`}>
@@ -134,7 +134,10 @@ export function GoalListItem({
                     {goal.priority} priority
                   </span>
                   {goal.deadline && (
-                    <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm">
+                    <span className="px-2 py-1 rounded text-sm" style={{
+                      backgroundColor: 'var(--bg-tertiary)',
+                      color: 'var(--text-secondary)'
+                    }}>
                       Due: {goal.deadline.toLocaleDateString()}
                     </span>
                   )}
@@ -143,32 +146,53 @@ export function GoalListItem({
               <div className="flex gap-2">
                 <button
                   onClick={onNotificationSettings}
-                  className={`p-2 rounded-lg transition-colors ${
-                    goal.notifications?.enabled 
-                      ? 'text-blue-600 bg-blue-50 hover:bg-blue-100' 
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`}
+                  className="p-2 rounded-lg transition-colors"
+                  style={goal.notifications?.enabled ? {
+                    color: 'var(--accent-primary)',
+                    backgroundColor: 'var(--accent-primary-light)'
+                  } : {
+                    color: 'var(--text-secondary)'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!goal.notifications?.enabled) {
+                      e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!goal.notifications?.enabled) {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }
+                  }}
                   title="Notification settings"
                 >
                   <Bell className="w-5 h-5" />
                 </button>
                 <button
                   onClick={onEdit}
-                  className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 rounded-lg transition-colors"
+                  style={{ color: 'var(--text-secondary)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   title="Edit goal"
                 >
                   <Edit className="w-5 h-5" />
                 </button>
                 <button
                   onClick={onDuplicate}
-                  className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 rounded-lg transition-colors"
+                  style={{ color: 'var(--text-secondary)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   title="Duplicate goal"
                 >
                   <Copy className="w-5 h-5" />
                 </button>
                 <button
                   onClick={onDelete}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  className="p-2 rounded-lg transition-colors"
+                  style={{ color: 'var(--accent-error)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   title="Delete goal"
                 >
                   <Trash2 className="w-5 h-5" />
@@ -179,14 +203,17 @@ export function GoalListItem({
             {/* Progress Bar */}
             {goal.subGoals.length > 0 && (
               <div className="mt-4">
-                <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+                <div className="flex items-center justify-between text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
                   <span>Overall Progress</span>
                   <span>{progress}% ({goal.subGoals.filter(sg => sg.completed).length}/{goal.subGoals.length} completed)</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full rounded-full h-2" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
                   <div
-                    className={`${goal.status === 'completed' ? 'bg-green-600' : 'bg-blue-600'} h-2 rounded-full transition-all`}
-                    style={{ width: `${progress}%` }}
+                    className="h-2 rounded-full transition-all"
+                    style={{ 
+                      width: `${progress}%`,
+                      backgroundColor: goal.status === 'completed' ? 'var(--accent-success)' : 'var(--accent-primary)'
+                    }}
                   />
                 </div>
               </div>

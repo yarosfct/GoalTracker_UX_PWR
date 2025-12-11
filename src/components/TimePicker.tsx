@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Clock, ChevronDown } from 'lucide-react';
 import { useClickOutside } from '../hooks/useClickOutside';
 
@@ -52,8 +52,6 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   const hours = Array.from({ length: 12 }, (_, i) => i + 1);
   const minutes = Array.from({ length: 60 }, (_, i) => i);
 
-  // Helper to scroll to selected element
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   const displayValue = value 
     ? `${selectedTime.hour.toString().padStart(2, '0')}:${selectedTime.minute.toString().padStart(2, '0')} ${selectedTime.period}`
@@ -82,7 +80,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 w-full sm:w-64 bg-white rounded-xl shadow-xl border border-gray-100 p-4 z-50">
+        <div className="absolute bottom-full mb-2 left-0 w-full sm:w-64 bg-white rounded-xl shadow-xl border border-gray-100 p-4 z-50">
           <div className="flex gap-2 h-48">
             {/* Hours */}
             <div className="flex-1 flex flex-col">
@@ -155,3 +153,4 @@ export const TimePicker: React.FC<TimePickerProps> = ({
     </div>
   );
 };
+

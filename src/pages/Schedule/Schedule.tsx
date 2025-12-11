@@ -1,18 +1,22 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useApp } from '../../contexts/AppContext';
-import { ChevronLeft, ChevronRight, X, Calendar as CalendarIcon, Target, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Calendar as CalendarIcon, Target, Plus, Edit2, Trash2, Clock, AlertTriangle } from 'lucide-react';
 import type { ScheduleEvent, GoalCategory, Goal, GoalStatus, GoalPriority } from '../../types';
 import { TimePicker } from '../../components/TimePicker';
 
 type ViewMode = 'month' | 'week';
 
 const Schedule = () => {
-  const { scheduleEvents, goals, addScheduleEvent, deleteScheduleEvent, addGoal } = useApp();
+  const { scheduleEvents, goals, addScheduleEvent, updateScheduleEvent, deleteScheduleEvent, addGoal } = useApp();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [showEventForm, setShowEventForm] = useState(false);
   const [showGoalForm, setShowGoalForm] = useState(false);
+  const [showEventDetails, setShowEventDetails] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<ScheduleEvent | null>(null);
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
     goalId: '',
     subGoalId: '',
@@ -26,6 +30,52 @@ const Schedule = () => {
     category: 'personal' as GoalCategory,
     priority: 'medium' as GoalPriority,
   });
+
+  // Calculate conflicts for all events
+  const conflicts = useMemo(() => {
+    const conflictMap = new Map<string, boolean>();
+    
+    scheduleEvents.forEach(event1 => {
+      const start1 = new Date(event1.start).getTime();
+      const end1 = new Date(event1.end).getTime();
+      
+      scheduleEvents.forEach(event2 => {
+        if (event1.id === event2.id) return;
+        
+        const start2 = new Date(event2.start).getTime();
+        const end2 = new Date(event2.end).getTime();
+        
+        if (start1 < end2 && start2 < end1) {
+          conflictMap.set(event1.id, true);
+          conflictMap.set(event2.id, true);
+        }
+      });
+    });
+    
+    return conflictMap;
+  }, [scheduleEvents]);
+
+  // Check for conflicts in the form
+  const getFormConflicts = () => {
+    if (!selectedDate || !formData.startTime || !formData.endTime) return false;
+
+    const [startHour, startMinute] = formData.startTime.split(':');
+    const [endHour, endMinute] = formData.endTime.split(':');
+    
+    const formStart = new Date(selectedDate);
+    formStart.setHours(parseInt(startHour), parseInt(startMinute));
+    const formEnd = new Date(selectedDate);
+    formEnd.setHours(parseInt(endHour), parseInt(endMinute));
+    
+    return scheduleEvents.some(event => {
+      if (editingEventId === event.id) return false;
+      
+      const eventStart = new Date(event.start);
+      const eventEnd = new Date(event.end);
+      
+      return formStart.getTime() < eventEnd.getTime() && eventStart.getTime() < formEnd.getTime();
+    });
+  };
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -136,7 +186,41 @@ const Schedule = () => {
 
   const handleDateClick = (date: Date) => {
     setSelectedDate(date);
+    setEditingEventId(null);
+    setFormData({ goalId: '', subGoalId: '', title: '', startTime: '', endTime: '' });
     setShowEventForm(true);
+  };
+
+  const handleEventClick = (event: ScheduleEvent) => {
+    setSelectedEvent(event);
+    setShowEventDetails(true);
+  };
+
+  const handleReschedule = () => {
+    if (!selectedEvent) return;
+    
+    const start = new Date(selectedEvent.start);
+    const end = new Date(selectedEvent.end);
+    
+    setFormData({
+      goalId: selectedEvent.goalId,
+      subGoalId: '',
+      title: selectedEvent.title,
+      startTime: `${start.getHours().toString().padStart(2, '0')}:${start.getMinutes().toString().padStart(2, '0')}`,
+      endTime: `${end.getHours().toString().padStart(2, '0')}:${end.getMinutes().toString().padStart(2, '0')}`,
+    });
+    
+    setSelectedDate(start);
+    setEditingEventId(selectedEvent.id);
+    setShowEventDetails(false);
+    setShowEventForm(true);
+  };
+
+  const handleDeleteEvent = () => {
+    if (selectedEvent && confirm('Are you sure you want to delete this event?')) {
+      deleteScheduleEvent(selectedEvent.id);
+      setShowEventDetails(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -160,17 +244,28 @@ const Schedule = () => {
     const [endHour, endMinute] = formData.endTime.split(':');
     endDateTime.setHours(parseInt(endHour), parseInt(endMinute));
 
-    const event: ScheduleEvent = {
-      id: Date.now().toString(),
-      goalId: formData.goalId,
-      title: eventTitle,
-      start: startDateTime,
-      end: endDateTime,
-      category: goal.category,
-    };
+    if (editingEventId) {
+       updateScheduleEvent(editingEventId, {
+        goalId: formData.goalId,
+        title: eventTitle,
+        start: startDateTime,
+        end: endDateTime,
+        category: goal.category,
+       });
+    } else {
+      const event: ScheduleEvent = {
+        id: Date.now().toString(),
+        goalId: formData.goalId,
+        title: eventTitle,
+        start: startDateTime,
+        end: endDateTime,
+        category: goal.category,
+      };
+      addScheduleEvent(event);
+    }
 
-    addScheduleEvent(event);
     setShowEventForm(false);
+    setEditingEventId(null);
     setFormData({ goalId: '', subGoalId: '', title: '', startTime: '', endTime: '' });
   };
 
@@ -213,13 +308,66 @@ const Schedule = () => {
     setNewGoalData({ title: '', description: '', category: 'personal', priority: 'medium' });
   };
 
+  // Conflict warning display in modal
+  const showConflictWarning = showEventForm && getFormConflicts();
+
+  // Find earliest conflict for global alert
+  const earliestConflict = useMemo(() => {
+    const conflictingEvents = scheduleEvents.filter(event => conflicts.get(event.id));
+    if (conflictingEvents.length === 0) return null;
+    
+    // Sort by start date and return the earliest
+    const sorted = conflictingEvents.sort((a, b) => 
+      new Date(a.start).getTime() - new Date(b.start).getTime()
+    );
+    return sorted[0];
+  }, [scheduleEvents, conflicts]);
+
+  const handleNavigateToConflict = () => {
+    if (!earliestConflict) return;
+    const conflictDate = new Date(earliestConflict.start);
+    setCurrentDate(conflictDate);
+    setViewMode('week'); // Switch to week view for better visibility
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      {/* Global Conflict Alert */}
+      {earliestConflict && (
+        <div 
+          className="mb-4 bg-amber-50 border-l-4 border-amber-500 p-4 rounded-lg cursor-pointer hover:bg-amber-100 transition-colors"
+          onClick={handleNavigateToConflict}
+        >
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-amber-900 mb-1">
+                Scheduling Conflicts Detected
+              </h3>
+              <p className="text-sm text-amber-800">
+                You have {scheduleEvents.filter(e => conflicts.get(e.id)).length} overlapping events in your schedule.
+                The earliest conflict is on <span className="font-medium">{earliestConflict.start.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</span>.
+                Click here to view and resolve.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div 
+        className="rounded-lg overflow-hidden"
+        style={{
+          backgroundColor: 'var(--bg-primary)',
+          border: '1px solid var(--border-primary)'
+        }}
+      >
         {/* Calendar Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div 
+          className="p-6"
+          style={{ borderBottom: '1px solid var(--border-primary)' }}
+        >
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-gray-900">
+            <h2 style={{ color: 'var(--text-primary)' }}>
               {viewMode === 'month' 
                 ? `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`
                 : getWeekRange()
@@ -228,19 +376,28 @@ const Schedule = () => {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => navigate('prev')}
-                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 rounded-lg transition-colors"
+                style={{ color: 'var(--text-secondary)' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <button
                 onClick={() => setCurrentDate(new Date())}
-                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                className="px-4 py-2 rounded-lg transition-colors"
+                style={{ color: 'var(--text-secondary)' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
                 Today
               </button>
               <button
                 onClick={() => navigate('next')}
-                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 rounded-lg transition-colors"
+                style={{ color: 'var(--text-secondary)' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -250,21 +407,47 @@ const Schedule = () => {
           <div className="flex gap-2">
             <button
               onClick={() => setViewMode('month')}
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                viewMode === 'month'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className="px-4 py-2 rounded-lg transition-colors"
+              style={viewMode === 'month' ? {
+                backgroundColor: 'var(--accent-primary)',
+                color: '#ffffff'
+              } : {
+                backgroundColor: 'var(--bg-tertiary)',
+                color: 'var(--text-secondary)'
+              }}
+              onMouseEnter={(e) => {
+                if (viewMode !== 'month') {
+                  e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (viewMode !== 'month') {
+                  e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)';
+                }
+              }}
             >
               Month
             </button>
             <button
               onClick={() => setViewMode('week')}
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                viewMode === 'week'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className="px-4 py-2 rounded-lg transition-colors"
+              style={viewMode === 'week' ? {
+                backgroundColor: 'var(--accent-primary)',
+                color: '#ffffff'
+              } : {
+                backgroundColor: 'var(--bg-tertiary)',
+                color: 'var(--text-secondary)'
+              }}
+              onMouseEnter={(e) => {
+                if (viewMode !== 'week') {
+                  e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (viewMode !== 'week') {
+                  e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)';
+                }
+              }}
             >
               Week
             </button>
@@ -295,28 +478,35 @@ const Schedule = () => {
                 const dayEvents = getEventsForDate(date);
                 const goalDeadlines = getGoalDeadlinesForDate(date);
                 const today = isToday(date);
+                const hasConflict = dayEvents.some(e => conflicts.get(e.id));
+
                 return (
                   <div
                     key={day}
-                    className={`aspect-square border rounded-lg p-2 hover:border-blue-300 transition-colors cursor-pointer ${
+                    className={`aspect-square border rounded-lg p-2 hover:border-blue-300 transition-colors cursor-pointer relative ${
                       today ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
                     }`}
                     onClick={() => handleDateClick(date)}
                   >
-                    <div className={`text-sm mb-1 ${today ? 'text-blue-700' : 'text-gray-700'}`}>
-                      {day}
+                    <div className="flex justify-between items-start mb-1">
+                      <div className={`text-sm ${today ? 'text-blue-700' : 'text-gray-700'}`}>
+                        {day}
+                      </div>
+                      {hasConflict && (
+                        <div className="text-amber-500" title="Scheduling conflict on this day">
+                          <AlertTriangle className="w-3 h-3" />
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-1 overflow-hidden">
                       {/* Schedule Events */}
                       {dayEvents.slice(0, 1).map(event => (
                         <div
                           key={event.id}
-                          className={`text-xs px-2 py-1 rounded text-white truncate ${getCategoryColor(event.category)} flex items-center gap-1`}
+                          className={`text-xs px-2 py-1 rounded text-white truncate ${getCategoryColor(event.category)} flex items-center gap-1 ${conflicts.get(event.id) ? 'ring-2 ring-amber-400' : ''}`}
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (confirm('Delete this event?')) {
-                              deleteScheduleEvent(event.id);
-                            }
+                            handleEventClick(event);
                           }}
                           title={event.title}
                         >
@@ -356,15 +546,22 @@ const Schedule = () => {
                 const goalDeadlines = getGoalDeadlinesForDate(date);
                 const today = isToday(date);
                 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                const hasConflict = dayEvents.some(e => conflicts.get(e.id));
+
                 return (
                   <div
                     key={idx}
-                    className={`border rounded-lg p-3 min-h-[400px] hover:border-blue-300 transition-colors cursor-pointer ${
+                    className={`border rounded-lg p-3 min-h-[400px] hover:border-blue-300 transition-colors cursor-pointer relative ${
                       today ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
                     }`}
                     onClick={() => handleDateClick(date)}
                   >
-                    <div className="mb-3 text-center">
+                    <div className="mb-3 text-center relative">
+                      {hasConflict && (
+                        <div className="absolute right-0 top-0 text-amber-500" title="Scheduling conflict">
+                          <AlertTriangle className="w-4 h-4" />
+                        </div>
+                      )}
                       <div className="text-sm text-gray-600">{dayNames[idx]}</div>
                       <div className={`text-xl ${today ? 'text-blue-700' : 'text-gray-900'}`}>
                         {date.getDate()}
@@ -375,12 +572,10 @@ const Schedule = () => {
                       {dayEvents.map(event => (
                         <div
                           key={event.id}
-                          className={`text-xs px-2 py-2 rounded text-white ${getCategoryColor(event.category)}`}
+                          className={`text-xs px-2 py-2 rounded text-white ${getCategoryColor(event.category)} ${conflicts.get(event.id) ? 'ring-2 ring-amber-400' : ''}`}
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (confirm('Delete this event?')) {
-                              deleteScheduleEvent(event.id);
-                            }
+                            handleEventClick(event);
                           }}
                         >
                           <div className="flex items-center gap-1 mb-1">
@@ -417,29 +612,105 @@ const Schedule = () => {
         )}
 
         {/* Legend */}
-        <div className="p-6 border-t border-gray-200">
-          <h3 className="text-gray-700 mb-3">Legend</h3>
+        <div 
+          className="p-6"
+          style={{ borderTop: '1px solid var(--border-primary)' }}
+        >
+          <h3 className="mb-3" style={{ color: 'var(--text-secondary)' }}>Legend</h3>
           <div className="flex flex-wrap gap-4">
             <div className="flex items-center gap-2">
-              <CalendarIcon className="w-4 h-4 text-gray-600" />
-              <span className="text-sm text-gray-600">Schedule Event</span>
+              <CalendarIcon className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Schedule Event</span>
             </div>
             <div className="flex items-center gap-2">
-              <Target className="w-4 h-4 text-red-600" />
-              <span className="text-sm text-gray-600">Goal Deadline</span>
+              <Target className="w-4 h-4" style={{ color: 'var(--accent-error)' }} />
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Goal Deadline</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-500" />
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Conflict</span>
             </div>
           </div>
           <div className="flex flex-wrap gap-3 mt-3">
-            <h4 className="text-gray-700 w-full">Categories:</h4>
+            <h4 className="w-full" style={{ color: 'var(--text-secondary)' }}>Categories:</h4>
             {(['study', 'fitness', 'personal', 'work', 'finance', 'health'] as GoalCategory[]).map(category => (
               <div key={category} className="flex items-center gap-2">
                 <div className={`w-4 h-4 rounded ${getCategoryColor(category)}`} />
-                <span className="text-sm text-gray-600 capitalize">{category}</span>
+                <span className="text-sm capitalize" style={{ color: 'var(--text-secondary)' }}>{category}</span>
               </div>
             ))}
           </div>
         </div>
       </div>
+
+      {/* Event Details Modal */}
+      {showEventDetails && selectedEvent && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all" onClick={() => setShowEventDetails(false)}>
+          <div 
+            className="bg-white rounded-lg max-w-md w-full p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-gray-900 font-medium text-lg flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full ${getCategoryColor(selectedEvent.category)}`} />
+                Event Details
+              </h3>
+              <button
+                onClick={() => setShowEventDetails(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-6">
+              <div>
+                <h4 className="text-xl font-semibold text-gray-900 mb-1">{selectedEvent.title}</h4>
+                <p className="text-sm text-gray-500 capitalize">{selectedEvent.category}</p>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <Clock className="w-5 h-5 text-gray-400 mt-0.5" />
+                <div>
+                  <div className="text-sm font-medium text-gray-900">
+                    {selectedEvent.start.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {selectedEvent.start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} - {selectedEvent.end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                  </div>
+                </div>
+              </div>
+
+              {conflicts.get(selectedEvent.id) && (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
+                  <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-amber-800">
+                    <span className="font-medium">Scheduling Conflict:</span> This event overlaps with another scheduled event.
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={handleDeleteEvent}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Cancel Event
+                </button>
+                <button
+                  onClick={handleReschedule}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Edit2 className="w-4 h-4" />
+                  Reschedule
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Event Form Modal */}
       {showEventForm && selectedDate && (
@@ -450,7 +721,7 @@ const Schedule = () => {
           >
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-gray-900 font-medium text-lg">
-                Schedule Event for {selectedDate.toLocaleDateString()}
+                {editingEventId ? 'Reschedule Event' : `Schedule Event for ${selectedDate.toLocaleDateString()}`}
               </h3>
               <button
                 onClick={() => setShowEventForm(false)}
@@ -459,6 +730,16 @@ const Schedule = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
+            
+            {showConflictWarning && (
+              <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
+                <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-amber-800">
+                  <span className="font-medium">Warning:</span> This time slot overlaps with an existing event.
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-2">
@@ -548,7 +829,7 @@ const Schedule = () => {
                   type="submit"
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  Add Event
+                  {editingEventId ? 'Save Changes' : 'Add Event'}
                 </button>
               </div>
             </form>

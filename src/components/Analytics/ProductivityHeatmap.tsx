@@ -18,10 +18,16 @@ export function ProductivityHeatmap({ heatmapWeeks, totalEvents }: ProductivityH
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
+    <div 
+      className="rounded-lg p-6"
+      style={{
+        backgroundColor: 'var(--bg-primary)',
+        border: '1px solid var(--border-primary)'
+      }}
+    >
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-gray-900">Productivity Heatmap</h2>
-        <div className="flex items-center gap-2 text-xs text-gray-600">
+        <h2 style={{ color: 'var(--text-primary)' }}>Productivity Heatmap</h2>
+        <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
           <span>Less</span>
           <div className="flex gap-1">
             {[0, 1, 2, 3, 4].map(level => (
@@ -41,7 +47,7 @@ export function ProductivityHeatmap({ heatmapWeeks, totalEvents }: ProductivityH
           {/* Month labels */}
           <div className="flex flex-col justify-start pt-5 pr-2">
             {['Mon', 'Wed', 'Fri'].map((day, idx) => (
-              <div key={day} className="text-xs text-gray-600 h-3 flex items-center" style={{ marginTop: idx === 0 ? 0 : '6px' }}>
+              <div key={day} className="text-xs h-3 flex items-center" style={{ color: 'var(--text-secondary)', marginTop: idx === 0 ? 0 : '6px' }}>
                 {day}
               </div>
             ))}
@@ -75,7 +81,7 @@ export function ProductivityHeatmap({ heatmapWeeks, totalEvents }: ProductivityH
         </div>
       </div>
       
-      <p className="text-sm text-gray-500 mt-4">
+      <p className="text-sm mt-4" style={{ color: 'var(--text-muted)' }}>
         {totalEvents > 0 
           ? `${totalEvents} total scheduled events over the past year`
           : 'Start scheduling events to build your productivity heatmap!'
@@ -84,6 +90,7 @@ export function ProductivityHeatmap({ heatmapWeeks, totalEvents }: ProductivityH
     </div>
   );
 }
+
 
 
 
