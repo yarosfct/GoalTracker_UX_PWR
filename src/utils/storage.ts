@@ -1,91 +1,91 @@
-/**
- * Local Storage Manager
- * A simple lightweight database solution using localStorage
- * 
- * Note: Types are now defined in src/types/index.ts
- */
-
-interface Activity {
-  id: string;
-  goalId: string;
-  title: string;
-  date: string;
-  completed: boolean;
-  createdAt: string;
-}
+import type { Goal, ScheduleEvent, UserSettings } from '../types';
 
 class LocalStorage {
   private readonly GOALS_KEY = 'goaltracker_goals';
-  private readonly ACTIVITIES_KEY = 'goaltracker_activities';
+  private readonly SCHEDULE_KEY = 'goaltracker_schedule';
   private readonly SETTINGS_KEY = 'goaltracker_settings';
 
-  // Goals - accepts any goal-like object for flexibility
-  getGoals(): any[] {
+  private readonly DEFAULT_SETTINGS: UserSettings = {
+    theme: 'minimal',
+    colorScheme: 'light',
+    reminderFrequency: 'weekly',
+    notifications: true,
+    guidedMode: true,
+    fontSize: 'medium',
+  };
+
+  // Goals
+  getGoals(): Goal[] {
     const data = localStorage.getItem(this.GOALS_KEY);
-    return data ? JSON.parse(data) : [];
+    if (!data) return [];
+    
+    try {
+      const parsed = JSON.parse(data);
+      return parsed.map((goal: any) => ({
+        ...goal,
+        createdAt: new Date(goal.createdAt),
+        deadline: goal.deadline ? new Date(goal.deadline) : undefined,
+        completedAt: goal.completedAt ? new Date(goal.completedAt) : undefined,
+        subGoals: goal.subGoals.map((sg: any) => ({
+          ...sg,
+          createdAt: new Date(sg.createdAt),
+          deadline: sg.deadline ? new Date(sg.deadline) : undefined,
+          completedAt: sg.completedAt ? new Date(sg.completedAt) : undefined,
+        })),
+      }));
+    } catch (error) {
+      console.error('Error parsing goals from storage:', error);
+      return [];
+    }
   }
 
-  saveGoal(goal: any): void {
-    const goals = this.getGoals();
-    const index = goals.findIndex((g: any) => g.id === goal.id);
-    if (index >= 0) {
-      goals[index] = goal;
-    } else {
-      goals.push(goal);
-    }
+  saveGoals(goals: Goal[]): void {
     localStorage.setItem(this.GOALS_KEY, JSON.stringify(goals));
   }
 
-  deleteGoal(goalId: string): void {
-    const goals = this.getGoals().filter(g => g.id !== goalId);
-    localStorage.setItem(this.GOALS_KEY, JSON.stringify(goals));
-  }
+  // Schedule Events
+  getScheduleEvents(): ScheduleEvent[] {
+    const data = localStorage.getItem(this.SCHEDULE_KEY);
+    if (!data) return [];
 
-  // Activities
-  getActivities(): Activity[] {
-    const data = localStorage.getItem(this.ACTIVITIES_KEY);
-    return data ? JSON.parse(data) : [];
-  }
-
-  saveActivity(activity: Activity): void {
-    const activities = this.getActivities();
-    const index = activities.findIndex(a => a.id === activity.id);
-    if (index >= 0) {
-      activities[index] = activity;
-    } else {
-      activities.push(activity);
+    try {
+      const parsed = JSON.parse(data);
+      return parsed.map((event: any) => ({
+        ...event,
+        start: new Date(event.start),
+        end: new Date(event.end),
+      }));
+    } catch (error) {
+      console.error('Error parsing schedule events from storage:', error);
+      return [];
     }
-    localStorage.setItem(this.ACTIVITIES_KEY, JSON.stringify(activities));
   }
 
-  deleteActivity(activityId: string): void {
-    const activities = this.getActivities().filter(a => a.id !== activityId);
-    localStorage.setItem(this.ACTIVITIES_KEY, JSON.stringify(activities));
+  saveScheduleEvents(events: ScheduleEvent[]): void {
+    localStorage.setItem(this.SCHEDULE_KEY, JSON.stringify(events));
   }
 
   // Settings
-  getSettings(): any {
+  getSettings(): UserSettings {
     const data = localStorage.getItem(this.SETTINGS_KEY);
-    return data ? JSON.parse(data) : {
-      displayName: '',
-      email: '',
-      theme: 'light',
-      defaultView: 'dashboard',
-      notifications: {
-        email: false,
-        push: false,
-      },
-    };
+    if (!data) return this.DEFAULT_SETTINGS;
+
+    try {
+      return { ...this.DEFAULT_SETTINGS, ...JSON.parse(data) };
+    } catch (error) {
+      console.error('Error parsing settings from storage:', error);
+      return this.DEFAULT_SETTINGS;
+    }
   }
 
-  saveSettings(settings: any): void {
+  saveSettings(settings: UserSettings): void {
     localStorage.setItem(this.SETTINGS_KEY, JSON.stringify(settings));
   }
 
-  // Utility methods
+  // Utility
   clearAll(): void {
     localStorage.removeItem(this.GOALS_KEY);
-    localStorage.removeItem(this.ACTIVITIES_KEY);
+    localStorage.removeItem(this.SCHEDULE_KEY);
     localStorage.removeItem(this.SETTINGS_KEY);
   }
 }

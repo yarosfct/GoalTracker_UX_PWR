@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 import type { Goal, ScheduleEvent, UserSettings } from '../types';
+import { storage } from '../utils/storage';
+import { mockGoals } from '../utils/mockData';
 
 interface AppContextType {
   goals: Goal[];
@@ -21,84 +23,54 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const defaultSettings: UserSettings = {
-  theme: 'minimal',
-  colorScheme: 'light',
-  reminderFrequency: 'weekly',
-  notifications: true,
-  guidedMode: true,
-  fontSize: 'medium',
-};
-
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [goals, setGoals] = useState<Goal[]>([]);
-  const [scheduleEvents, setScheduleEvents] = useState<ScheduleEvent[]>([]);
-  const [settings, setSettings] = useState<UserSettings>(defaultSettings);
+  // Initialize state from storage
+  const [goals, setGoals] = useState<Goal[]>(() => {
+    const savedGoals = storage.getGoals();
+    if (savedGoals.length === 0) {
+      // Seed with mock data if storage is empty
+      storage.saveGoals(mockGoals);
+      return mockGoals;
+    }
+    return savedGoals;
+  });
 
-  // Load data from localStorage on mount
-  useEffect(() => {
-    const savedGoals = localStorage.getItem('goals');
-    const savedEvents = localStorage.getItem('scheduleEvents');
-    const savedSettings = localStorage.getItem('settings');
-    if (savedGoals) {
-      const parsedGoals = JSON.parse(savedGoals);
-      // Convert date strings back to Date objects
-      const goalsWithDates = parsedGoals.map((goal: any) => ({
-        ...goal,
-        createdAt: new Date(goal.createdAt),
-        deadline: goal.deadline ? new Date(goal.deadline) : undefined,
-        completedAt: goal.completedAt ? new Date(goal.completedAt) : undefined,
-        subGoals: goal.subGoals.map((sg: any) => ({
-          ...sg,
-          createdAt: new Date(sg.createdAt),
-          completedAt: sg.completedAt ? new Date(sg.completedAt) : undefined,
-          deadline: sg.deadline ? new Date(sg.deadline) : undefined,
-        })),
-      }));
-      setGoals(goalsWithDates);
-    }
-    if (savedEvents) {
-      const parsedEvents = JSON.parse(savedEvents);
-      const eventsWithDates = parsedEvents.map((event: any) => ({
-        ...event,
-        start: new Date(event.start),
-        end: new Date(event.end),
-      }));
-      setScheduleEvents(eventsWithDates);
-    }
-    if (savedSettings) {
-      setSettings(JSON.parse(savedSettings));
-    }
-  }, []);
+  const [scheduleEvents, setScheduleEvents] = useState<ScheduleEvent[]>(() => 
+    storage.getScheduleEvents()
+  );
 
-  // Save to localStorage whenever data changes
+  const [settings, setSettings] = useState<UserSettings>(() => 
+    storage.getSettings()
+  );
+
+  // Persistence effects
   useEffect(() => {
-    localStorage.setItem('goals', JSON.stringify(goals));
+    storage.saveGoals(goals);
   }, [goals]);
 
   useEffect(() => {
-    localStorage.setItem('scheduleEvents', JSON.stringify(scheduleEvents));
+    storage.saveScheduleEvents(scheduleEvents);
   }, [scheduleEvents]);
 
   useEffect(() => {
-    localStorage.setItem('settings', JSON.stringify(settings));
+    storage.saveSettings(settings);
   }, [settings]);
 
   const addGoal = (goal: Goal) => {
-    setGoals([...goals, goal]);
+    setGoals(prev => [...prev, goal]);
   };
 
   const updateGoal = (id: string, updatedGoal: Partial<Goal>) => {
-    setGoals(goals.map(g => g.id === id ? { ...g, ...updatedGoal } : g));
+    setGoals(prev => prev.map(g => g.id === id ? { ...g, ...updatedGoal } : g));
   };
 
   const deleteGoal = (id: string) => {
-    setGoals(goals.filter(g => g.id !== id));
-    setScheduleEvents(scheduleEvents.filter(e => e.goalId !== id));
+    setGoals(prev => prev.filter(g => g.id !== id));
+    setScheduleEvents(prev => prev.filter(e => e.goalId !== id));
   };
 
   const addSubGoal = (goalId: string, subGoal: { title: string; deadline?: Date }) => {
-    setGoals(goals.map(g => {
+    setGoals(prev => prev.map(g => {
       if (g.id === goalId) {
         return {
           ...g,
@@ -119,7 +91,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const updateSubGoal = (goalId: string, subGoalId: string, subGoal: { title?: string; deadline?: Date }) => {
-    setGoals(goals.map(g => {
+    setGoals(prev => prev.map(g => {
       if (g.id === goalId) {
         return {
           ...g,
@@ -140,7 +112,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const toggleSubGoal = (goalId: string, subGoalId: string) => {
-    setGoals(goals.map(g => {
+    setGoals(prev => prev.map(g => {
       if (g.id === goalId) {
         return {
           ...g,
@@ -161,7 +133,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteSubGoal = (goalId: string, subGoalId: string) => {
-    setGoals(goals.map(g => {
+    setGoals(prev => prev.map(g => {
       if (g.id === goalId) {
         return {
           ...g,
@@ -173,19 +145,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const addScheduleEvent = (event: ScheduleEvent) => {
-    setScheduleEvents([...scheduleEvents, event]);
+    setScheduleEvents(prev => [...prev, event]);
   };
 
   const updateScheduleEvent = (id: string, updatedEvent: Partial<ScheduleEvent>) => {
-    setScheduleEvents(scheduleEvents.map(e => e.id === id ? { ...e, ...updatedEvent } : e));
+    setScheduleEvents(prev => prev.map(e => e.id === id ? { ...e, ...updatedEvent } : e));
   };
 
   const deleteScheduleEvent = (id: string) => {
-    setScheduleEvents(scheduleEvents.filter(e => e.id !== id));
+    setScheduleEvents(prev => prev.filter(e => e.id !== id));
   };
 
   const updateSettings = (newSettings: Partial<UserSettings>) => {
-    setSettings({ ...settings, ...newSettings });
+    setSettings(prev => ({ ...prev, ...newSettings }));
   };
 
   return (

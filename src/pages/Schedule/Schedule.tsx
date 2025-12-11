@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useApp } from '../../contexts/AppContext';
 import { ChevronLeft, ChevronRight, X, Calendar as CalendarIcon, Target, Plus } from 'lucide-react';
 import type { ScheduleEvent, GoalCategory, Goal, GoalStatus, GoalPriority } from '../../types';
-import { GoalForm } from '../../components/Goals';
+import { TimePicker } from '../../components/TimePicker';
 
 type ViewMode = 'month' | 'week';
 
@@ -520,23 +520,19 @@ const Schedule = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-gray-700 mb-2">Start Time *</label>
-                  <input
-                    type="time"
+                  <TimePicker
                     required
+                    label="Start Time"
                     value={formData.startTime}
-                    onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(value) => setFormData(prev => ({ ...prev, startTime: value }))}
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-700 mb-2">End Time *</label>
-                  <input
-                    type="time"
+                  <TimePicker
                     required
+                    label="End Time"
                     value={formData.endTime}
-                    onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(value) => setFormData(prev => ({ ...prev, endTime: value }))}
                   />
                 </div>
               </div>

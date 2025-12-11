@@ -57,3 +57,5 @@ export function GoalPipeline({ pipelineData, totalGoals }: GoalPipelineProps) {
 
 
 
+
+
