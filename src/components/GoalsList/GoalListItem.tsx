@@ -17,6 +17,7 @@ interface GoalListItemProps {
   onToggleSubGoal: (subGoalId: string) => void;
   onDeleteSubGoal: (subGoalId: string) => void;
   onStatusChange: (status: GoalStatus) => void;
+  onToggleMainGoal?: (completed: boolean) => void;
 }
 
 export function GoalListItem({
@@ -32,36 +33,62 @@ export function GoalListItem({
   onToggleSubGoal,
   onDeleteSubGoal,
   onStatusChange,
+  onToggleMainGoal,
 }: GoalListItemProps) {
   const [showCompletionPrompt, setShowCompletionPrompt] = useState(false);
   const [showAddSubGoalPrompt, setShowAddSubGoalPrompt] = useState(false);
+  const [wasTriggeredByMainGoal, setWasTriggeredByMainGoal] = useState(false);
   const prevCompletedRef = useRef(goal.subGoals.filter(sg => sg.completed).length);
+  const prevMainGoalCompletedRef = useRef(goal.mainGoalCompleted || false);
 
   useEffect(() => {
     const currentCompleted = goal.subGoals.filter(sg => sg.completed).length;
-    const total = goal.subGoals.length;
+    const total = goal.isFinalGoal ? goal.subGoals.length + 1 : goal.subGoals.length;
+    const mainGoalCompleted = goal.mainGoalCompleted || false;
+    const totalCompletedItems = goal.isFinalGoal ? currentCompleted + (mainGoalCompleted ? 1 : 0) : currentCompleted;
     
     // Check if we just reached 100% completion (transition from <100% to 100%)
-    if (total > 0 && currentCompleted === total && prevCompletedRef.current < total && goal.status !== 'completed') {
+    if (total > 0 && totalCompletedItems === total && 
+        (prevCompletedRef.current < currentCompleted || prevMainGoalCompletedRef.current !== mainGoalCompleted) && 
+        goal.status !== 'completed') {
+      // Track if this was triggered by the main goal being checked
+      const triggeredByMainGoal = prevMainGoalCompletedRef.current !== mainGoalCompleted && mainGoalCompleted;
+      setWasTriggeredByMainGoal(triggeredByMainGoal);
       setShowCompletionPrompt(true);
     }
     
     prevCompletedRef.current = currentCompleted;
-  }, [goal.subGoals, goal.status]);
+    prevMainGoalCompletedRef.current = mainGoalCompleted;
+  }, [goal.subGoals, goal.status, goal.isFinalGoal, goal.mainGoalCompleted]);
 
   const handleCompletionConfirm = () => {
     onStatusChange('completed');
     setShowCompletionPrompt(false);
+    setWasTriggeredByMainGoal(false);
   };
 
   const handleCompletionCancel = () => {
     setShowCompletionPrompt(false);
     setShowAddSubGoalPrompt(true);
+    // wasTriggeredByMainGoal is kept until handleAddSubGoalConfirm
   };
 
   const handleAddSubGoalConfirm = () => {
+    // If the completion prompt was triggered by the main goal being checked,
+    // uncheck the main goal when adding another subgoal
+    if (wasTriggeredByMainGoal && onToggleMainGoal) {
+      onToggleMainGoal(false);
+    }
     setShowAddSubGoalPrompt(false);
+    setWasTriggeredByMainGoal(false);
     onAddSubGoal();
+  };
+  
+  const handleMainGoalToggle = () => {
+    if (onToggleMainGoal) {
+      const newCompleted = !(goal.mainGoalCompleted || false);
+      onToggleMainGoal(newCompleted);
+    }
   };
   const getCategoryClass = (category: GoalCategory) => {
     return `category-badge ${category}`;
@@ -87,9 +114,30 @@ export function GoalListItem({
   };
 
   const getProgressPercentage = () => {
-    if (goal.subGoals.length === 0) return 0;
-    const completed = goal.subGoals.filter(sg => sg.completed).length;
-    return Math.round((completed / goal.subGoals.length) * 100);
+    const subGoalsCompleted = goal.subGoals.filter(sg => sg.completed).length;
+    const mainGoalCompleted = goal.mainGoalCompleted || false;
+    
+    if (goal.isFinalGoal) {
+      // When isFinalGoal is true, include the main goal in the total count
+      const total = goal.subGoals.length + 1;
+      if (total === 1) return mainGoalCompleted ? 100 : 0; // Only main goal, no subgoals
+      const completedItems = subGoalsCompleted + (mainGoalCompleted ? 1 : 0);
+      return Math.round((completedItems / total) * 100);
+    } else {
+      // Normal calculation - only count subgoals
+      if (goal.subGoals.length === 0) return 0;
+      return Math.round((subGoalsCompleted / goal.subGoals.length) * 100);
+    }
+  };
+  
+  const getTotalItems = () => {
+    return goal.isFinalGoal ? goal.subGoals.length + 1 : goal.subGoals.length;
+  };
+  
+  const getCompletedItems = () => {
+    const subGoalsCompleted = goal.subGoals.filter(sg => sg.completed).length;
+    const mainGoalCompleted = goal.mainGoalCompleted || false;
+    return goal.isFinalGoal ? subGoalsCompleted + (mainGoalCompleted ? 1 : 0) : subGoalsCompleted;
   };
 
   const progress = getProgressPercentage();
@@ -201,11 +249,11 @@ export function GoalListItem({
             </div>
 
             {/* Progress Bar */}
-            {goal.subGoals.length > 0 && (
+            {(goal.subGoals.length > 0 || goal.isFinalGoal) && (
               <div className="mt-4">
                 <div className="flex items-center justify-between text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
                   <span>Overall Progress</span>
-                  <span>{progress}% ({goal.subGoals.filter(sg => sg.completed).length}/{goal.subGoals.length} completed)</span>
+                  <span>{progress}% ({getCompletedItems()}/{getTotalItems()} completed)</span>
                 </div>
                 <div className="w-full rounded-full h-2" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
                   <div
@@ -215,6 +263,32 @@ export function GoalListItem({
                       backgroundColor: goal.status === 'completed' ? 'var(--accent-success)' : 'var(--accent-primary)'
                     }}
                   />
+                </div>
+              </div>
+            )}
+            
+            {/* Main Goal Checkbox (when isFinalGoal is true) */}
+            {goal.isFinalGoal && (
+              <div className="mt-4 p-4 rounded-lg border-2 border-purple-300 bg-purple-50">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id={`main-goal-${goal.id}`}
+                    checked={goal.mainGoalCompleted || false}
+                    onChange={handleMainGoalToggle}
+                    className="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500 cursor-pointer"
+                  />
+                  <label 
+                    htmlFor={`main-goal-${goal.id}`} 
+                    className="flex-1 cursor-pointer"
+                  >
+                    <div className="font-medium text-purple-900">
+                      🎯 {goal.title}
+                    </div>
+                    <div className="text-sm text-purple-700">
+                      Mark this main goal as completed
+                    </div>
+                  </label>
                 </div>
               </div>
             )}
@@ -247,7 +321,10 @@ export function GoalListItem({
 
       <GoalPrompt
         isOpen={showAddSubGoalPrompt}
-        onClose={() => setShowAddSubGoalPrompt(false)}
+        onClose={() => {
+          setShowAddSubGoalPrompt(false);
+          setWasTriggeredByMainGoal(false);
+        }}
         onConfirm={handleAddSubGoalConfirm}
         title="Add Another Sub-goal?"
         message="Do you want to add another sub-goal to keep going?"

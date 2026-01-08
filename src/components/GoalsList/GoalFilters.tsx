@@ -10,6 +10,8 @@ interface GoalFiltersProps {
   onStatusChange: (value: GoalStatus | 'all') => void;
   groupByPriority: boolean;
   onGroupByPriorityChange: (value: boolean) => void;
+  hideCompleted: boolean;
+  onHideCompletedChange: (value: boolean) => void;
 }
 
 export function GoalFilters({
@@ -21,6 +23,8 @@ export function GoalFilters({
   onStatusChange,
   groupByPriority,
   onGroupByPriorityChange,
+  hideCompleted,
+  onHideCompletedChange,
 }: GoalFiltersProps) {
   return (
     <div 
@@ -99,22 +103,48 @@ export function GoalFilters({
         </div>
       </div>
 
-      {/* Group By Option */}
-      <div className="flex items-center gap-2 pt-4" style={{ borderTop: '1px solid var(--border-primary)' }}>
-        <input
-          type="checkbox"
-          id="groupByPriority"
-          checked={groupByPriority}
-          onChange={(e) => onGroupByPriorityChange(e.target.checked)}
-          className="w-4 h-4 rounded"
-          style={{ 
-            accentColor: 'var(--accent-primary)',
-            borderColor: 'var(--border-secondary)'
-          }}
-        />
-        <label htmlFor="groupByPriority" style={{ color: 'var(--text-secondary)' }}>
-          Group by Priority
-        </label>
+      {/* Options Row */}
+      <div className="flex items-center justify-between pt-4" style={{ borderTop: '1px solid var(--border-primary)' }}>
+        {/* Group By Priority */}
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="groupByPriority"
+            checked={groupByPriority}
+            onChange={(e) => onGroupByPriorityChange(e.target.checked)}
+            className="w-4 h-4 rounded"
+            style={{ 
+              accentColor: 'var(--accent-primary)',
+              borderColor: 'var(--border-secondary)'
+            }}
+          />
+          <label htmlFor="groupByPriority" className="cursor-pointer" style={{ color: 'var(--text-secondary)' }}>
+            Group by Priority
+          </label>
+        </div>
+
+        {/* Hide Completed */}
+        <div className="flex items-center gap-2">
+          <label htmlFor="hideCompleted" className="cursor-pointer" style={{ color: 'var(--text-secondary)' }}>
+            Hide Completed Goals
+          </label>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              id="hideCompleted"
+              checked={hideCompleted}
+              onChange={(e) => onHideCompletedChange(e.target.checked)}
+              className="sr-only peer"
+            />
+            <div 
+              className="w-11 h-6 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"
+              style={{
+                backgroundColor: hideCompleted ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                border: '1px solid var(--border-secondary)'
+              }}
+            ></div>
+          </label>
+        </div>
       </div>
     </div>
   );

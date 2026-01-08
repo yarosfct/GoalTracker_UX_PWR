@@ -2,11 +2,13 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../contexts/AppContext';
 import { CheckCircle2, Clock, Target, TrendingUp, Plus } from 'lucide-react';
 import type { Goal } from '../../types';
-import { StatCard, GoalCard, DeadlineCard, MotivationalMessage } from '../../components/Dashboard';
+import { StatCard, GoalCard, DeadlineCard, MotivationalMessage, WelcomeStreakCard } from '../../components/Dashboard';
+import { useTheme } from '../../hooks/useTheme';
 
 const Dashboard = () => {
   const { goals } = useApp();
   const navigate = useNavigate();
+  const { isColorful } = useTheme();
 
   const stats = {
     total: goals.length,
@@ -58,11 +60,8 @@ const Dashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Welcome Section */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Welcome back!</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>Here's an overview of your goals and progress</p>
-      </div>
+      {/* Welcome & Streak Card */}
+      <WelcomeStreakCard />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -71,24 +70,28 @@ const Dashboard = () => {
           value={stats.total}
           icon={Target}
           iconColor="text-blue-600"
+          colorIndex={0}
         />
         <StatCard
           label="Completed"
           value={stats.completed}
           icon={CheckCircle2}
           iconColor="text-green-600"
+          colorIndex={1}
         />
         <StatCard
           label="In Progress"
           value={stats.inProgress}
           icon={Clock}
           iconColor="text-orange-600"
+          colorIndex={2}
         />
         <StatCard
           label="Completion Rate"
           value={`${completionRate}%`}
           icon={TrendingUp}
           iconColor="text-purple-600"
+          colorIndex={3}
         />
       </div>
 
@@ -105,10 +108,21 @@ const Dashboard = () => {
             <h2 style={{ color: 'var(--text-primary)' }}>Recent Goals</h2>
             <button
               onClick={() => handleNavigate('goals')}
-              className="px-4 py-2 text-white rounded-lg transition-colors flex items-center gap-2"
-              style={{ backgroundColor: 'var(--accent-primary)' }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--accent-primary-hover)'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--accent-primary)'}
+              className="px-4 py-2 text-white rounded-lg transition-all flex items-center gap-2 font-medium"
+              style={{ 
+                background: isColorful ? 'var(--button-primary-bg)' : 'var(--accent-primary)',
+                boxShadow: isColorful ? 'var(--shadow-sm)' : 'none',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--accent-primary-hover)';
+                e.currentTarget.style.transform = isColorful ? 'scale(1.05)' : 'scale(1)';
+                e.currentTarget.style.boxShadow = isColorful ? 'var(--shadow-md)' : 'none';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = isColorful ? 'var(--button-primary-bg)' : 'var(--accent-primary)';
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = isColorful ? 'var(--shadow-sm)' : 'none';
+              }}
             >
               <Plus className="w-4 h-4" />
               New Goal

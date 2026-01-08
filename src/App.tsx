@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AppProvider } from './contexts';
+import { AppProvider, ToastProvider } from './contexts';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Layout } from './components/Layout';
 import { WelcomeModal } from './components/WelcomeModal';
@@ -23,18 +23,20 @@ function App() {
   return (
     <ErrorBoundary>
       <AppProvider>
-        <Router>
-          <Layout>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/goals" element={<Goals />} />
-              <Route path="/schedule" element={<Schedule />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/settings" element={<Settings />} />
-            </Routes>
-          </Layout>
-          {showWelcome && <WelcomeModal onClose={() => setShowWelcome(false)} />}
-        </Router>
+        <ToastProvider>
+          <Router>
+            <Layout>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/goals" element={<Goals />} />
+                <Route path="/schedule" element={<Schedule />} />
+                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/settings" element={<Settings />} />
+              </Routes>
+            </Layout>
+            {showWelcome && <WelcomeModal onClose={() => setShowWelcome(false)} />}
+          </Router>
+        </ToastProvider>
       </AppProvider>
     </ErrorBoundary>
   );

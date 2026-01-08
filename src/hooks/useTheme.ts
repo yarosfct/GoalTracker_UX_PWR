@@ -14,11 +14,12 @@ export function useTheme() {
     // Apply theme data attributes
     root.setAttribute('data-theme', settings.theme);
     root.setAttribute('data-color-scheme', settings.colorScheme);
+    root.setAttribute('data-font-size', settings.fontSize);
     
     // Optional: Add transition class for smooth theme switching
     root.classList.add('theme-transition');
     
-  }, [settings.theme, settings.colorScheme]);
+  }, [settings.theme, settings.colorScheme, settings.fontSize]);
 
   return {
     theme: settings.theme,
@@ -29,4 +30,7 @@ export function useTheme() {
     isDark: settings.colorScheme === 'dark',
   };
 }
+
+
+
 

@@ -12,6 +12,9 @@ class LocalStorage {
     notifications: true,
     guidedMode: true,
     fontSize: 'medium',
+    currentStreak: 0,
+    lastVisitDate: null,
+    longestStreak: 0,
   };
 
   // Goals

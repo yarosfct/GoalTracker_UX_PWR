@@ -102,24 +102,24 @@
   --text-muted: #64748b;
   --text-disabled: #94a3b8;
   
-  /* Border Colors */
-  --border-primary: #e2e8f0;
-  --border-secondary: #cbd5e1;
-  --border-hover: #94a3b8;
+  /* Border Colors - More colorful */
+  --border-primary: #e0e7ff;
+  --border-secondary: #c7d2fe;
+  --border-hover: #818cf8;
   
   /* Accent Colors - More vibrant */
-  --accent-primary: #3b82f6;
-  --accent-primary-hover: #2563eb;
-  --accent-primary-light: #dbeafe;
-  --accent-secondary: #8b5cf6;
-  --accent-success: #10b981;
+  --accent-primary: #6366f1;
+  --accent-primary-hover: #4f46e5;
+  --accent-primary-light: #e0e7ff;
+  --accent-secondary: #a855f7;
+  --accent-success: #22c55e;
   --accent-warning: #f59e0b;
   --accent-error: #ef4444;
   
-  /* Shadows - More prominent */
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.15), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 12px 20px -3px rgba(0, 0, 0, 0.2), 0 4px 8px -2px rgba(0, 0, 0, 0.1);
+  /* Shadows - More prominent with subtle color tints */
+  --shadow-sm: 0 1px 3px 0 rgba(99, 102, 241, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 8px -1px rgba(99, 102, 241, 0.15), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 12px 20px -3px rgba(99, 102, 241, 0.2), 0 4px 8px -2px rgba(0, 0, 0, 0.1);
   
   /* Category Colors - Colorful (Vibrant) */
   --category-study-bg: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
@@ -156,6 +156,24 @@
   --gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
   --gradient-card: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
   --gradient-purple-blue: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  --gradient-orange-pink: linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%);
+  --gradient-green-blue: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  
+  /* Special card backgrounds for colorful theme */
+  --card-bg-gradient-1: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  --card-bg-gradient-2: linear-gradient(135deg, #ddd6fe 0%, #c4b5fd 100%);
+  --card-bg-gradient-3: linear-gradient(135deg, #bfdbfe 0%, #93c5fd 100%);
+  --card-bg-gradient-4: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+  
+  /* Button and interactive element enhancements */
+  --button-primary-bg: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --button-success-bg: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+  
+  /* Subtle card tints for variety */
+  --card-tint-blue: rgba(99, 102, 241, 0.03);
+  --card-tint-purple: rgba(139, 92, 246, 0.03);
+  --card-tint-green: rgba(34, 197, 94, 0.03);
+  --card-tint-orange: rgba(249, 115, 22, 0.03);
 }
 
 /* ============================================
@@ -247,24 +265,24 @@
   --text-muted: #94a3b8;
   --text-disabled: #64748b;
   
-  /* Border Colors */
-  --border-primary: #334155;
-  --border-secondary: #475569;
-  --border-hover: #64748b;
+  /* Border Colors - More colorful */
+  --border-primary: #4338ca;
+  --border-secondary: #6366f1;
+  --border-hover: #818cf8;
   
   /* Accent Colors - Vibrant on dark */
-  --accent-primary: #60a5fa;
-  --accent-primary-hover: #3b82f6;
-  --accent-primary-light: #1e40af;
-  --accent-secondary: #a78bfa;
-  --accent-success: #34d399;
+  --accent-primary: #818cf8;
+  --accent-primary-hover: #6366f1;
+  --accent-primary-light: #312e81;
+  --accent-secondary: #c084fc;
+  --accent-success: #4ade80;
   --accent-warning: #fbbf24;
   --accent-error: #f87171;
   
-  /* Shadows - More prominent on dark */
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.6), 0 2px 4px -1px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 12px 20px -3px rgba(0, 0, 0, 0.7), 0 4px 8px -2px rgba(0, 0, 0, 0.6);
+  /* Shadows - More prominent on dark with color glow */
+  --shadow-sm: 0 1px 3px 0 rgba(99, 102, 241, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 8px -1px rgba(99, 102, 241, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 12px 20px -3px rgba(99, 102, 241, 0.5), 0 4px 8px -2px rgba(0, 0, 0, 0.6);
   
   /* Category Colors - Dark Colorful (Vibrant on dark) */
   --category-study-bg: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
@@ -301,6 +319,24 @@
   --gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
   --gradient-card: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
   --gradient-purple-blue: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-orange-pink: linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%);
+  --gradient-green-blue: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  
+  /* Special card backgrounds for colorful theme */
+  --card-bg-gradient-1: linear-gradient(135deg, #854d0e 0%, #a16207 100%);
+  --card-bg-gradient-2: linear-gradient(135deg, #5b21b6 0%, #6b21a8 100%);
+  --card-bg-gradient-3: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+  --card-bg-gradient-4: linear-gradient(135deg, #991b1b 0%, #b91c1c 100%);
+  
+  /* Button and interactive element enhancements */
+  --button-primary-bg: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+  --button-success-bg: linear-gradient(135deg, #34d399 0%, #2dd4bf 100%);
+  
+  /* Subtle card tints for variety */
+  --card-tint-blue: rgba(129, 140, 248, 0.05);
+  --card-tint-purple: rgba(192, 132, 252, 0.05);
+  --card-tint-green: rgba(74, 222, 128, 0.05);
+  --card-tint-orange: rgba(251, 146, 60, 0.05);
 }
 
 /* ============================================
@@ -311,6 +347,50 @@
   transition: background-color var(--transition-speed) var(--transition-timing),
               color var(--transition-speed) var(--transition-timing),
               border-color var(--transition-speed) var(--transition-timing);
+}
+
+/* Colorful theme card enhancements */
+[data-theme="colorful"] .card-colorful-1 {
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.5) 0%, rgba(253, 230, 138, 0.3) 100%);
+  border-color: var(--border-secondary) !important;
+}
+
+[data-theme="colorful"] .card-colorful-2 {
+  background: linear-gradient(135deg, rgba(221, 214, 254, 0.5) 0%, rgba(196, 181, 253, 0.3) 100%);
+  border-color: var(--border-secondary) !important;
+}
+
+[data-theme="colorful"] .card-colorful-3 {
+  background: linear-gradient(135deg, rgba(191, 219, 254, 0.5) 0%, rgba(147, 197, 253, 0.3) 100%);
+  border-color: var(--border-secondary) !important;
+}
+
+[data-theme="colorful"] .card-colorful-4 {
+  background: linear-gradient(135deg, rgba(254, 202, 202, 0.5) 0%, rgba(252, 165, 165, 0.3) 100%);
+  border-color: var(--border-secondary) !important;
+}
+
+/* Colorful theme stat card hover effect */
+[data-theme="colorful"] .stat-card-hover {
+  transition: all 0.3s ease;
+}
+
+[data-theme="colorful"] .stat-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--accent-primary) !important;
+}
+
+/* Enhanced button styles for colorful theme */
+[data-theme="colorful"] .btn-primary-colorful {
+  background: var(--button-primary-bg);
+  color: white;
+  transition: all 0.3s ease;
+}
+
+[data-theme="colorful"] .btn-primary-colorful:hover {
+  transform: scale(1.02);
+  box-shadow: var(--shadow-lg);
 }
 
 /* Category badge utility */
@@ -363,4 +443,7 @@
   color: var(--category-other-text);
   border-color: var(--category-other-border);
 }
+
+
+
 

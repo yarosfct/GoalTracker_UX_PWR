@@ -157,5 +157,34 @@ export const mockGoals: Goal[] = [
       },
     ],
   },
+  {
+    id: '6',
+    title: 'Save 1000 PLN',
+    description: 'Save 1000 PLN for vacation',
+    category: 'finance',
+    status: 'in-progress',
+    priority: 'high',
+    createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
+    deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+    timeSpent: 0,
+    isFinalGoal: true,
+    mainGoalCompleted: false,
+    subGoals: [
+      {
+        id: '6-1',
+        title: 'Save 500 PLN',
+        completed: true,
+        createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+        completedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      },
+      {
+        id: '6-2',
+        title: 'Save another 250 PLN',
+        completed: false,
+        createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+        deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      },
+    ],
+  },
 ];
 

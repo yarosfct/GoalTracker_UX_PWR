@@ -1,5 +1,7 @@
-import { Download, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { Download, Trash2, AlertTriangle } from 'lucide-react';
 import type { Goal, UserSettings } from '../../types';
+import { ConfirmationDialog } from '../Goals';
 
 interface DataManagementProps {
   goals: Goal[];
@@ -7,6 +9,8 @@ interface DataManagementProps {
 }
 
 export function DataManagement({ goals, settings }: DataManagementProps) {
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+
   const handleExportData = () => {
     const data = {
       goals,
@@ -23,10 +27,8 @@ export function DataManagement({ goals, settings }: DataManagementProps) {
   };
 
   const handleClearData = () => {
-    if (confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
-      localStorage.clear();
-      window.location.reload();
-    }
+    localStorage.clear();
+    window.location.reload();
   };
 
   return (
@@ -59,7 +61,7 @@ export function DataManagement({ goals, settings }: DataManagementProps) {
         </div>
         <div>
           <button
-            onClick={handleClearData}
+            onClick={() => setShowClearConfirm(true)}
             className="w-full px-4 py-3 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
             style={{ backgroundColor: 'var(--accent-error)' }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
@@ -73,6 +75,19 @@ export function DataManagement({ goals, settings }: DataManagementProps) {
           </p>
         </div>
       </div>
+
+      {/* Clear Data Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={showClearConfirm}
+        onClose={() => setShowClearConfirm(false)}
+        onConfirm={handleClearData}
+        title="Clear All Data?"
+        message="This will permanently delete all your goals, sub-goals, settings, and schedule events. This action cannot be undone. Are you absolutely sure?"
+        confirmText="Yes, Delete Everything"
+        cancelText="Cancel"
+        variant="destructive"
+        icon={<AlertTriangle className="w-6 h-6 text-red-600" />}
+      />
     </div>
   );
 }

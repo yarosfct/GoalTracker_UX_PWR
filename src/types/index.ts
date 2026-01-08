@@ -37,6 +37,8 @@ export type Goal = {
   isShared?: boolean;
   sharedWith?: string[];
   notifications?: GoalNotifications;
+  isFinalGoal?: boolean;
+  mainGoalCompleted?: boolean;
 };
 
 export type ScheduleEvent = {
@@ -55,4 +57,7 @@ export type UserSettings = {
   notifications: boolean;
   guidedMode: boolean;
   fontSize: 'small' | 'medium' | 'large';
+  currentStreak: number;
+  lastVisitDate: string | null;
+  longestStreak: number;
 };

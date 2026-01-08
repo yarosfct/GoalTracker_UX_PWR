@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { useApp } from '../../contexts/AppContext';
 import type { Goal, GoalCategory, GoalStatus, GoalPriority } from '../../types';
-import { X } from 'lucide-react';
+import { X, HelpCircle } from 'lucide-react';
 
 interface GoalFormProps {
   goal?: Goal;
@@ -19,6 +19,7 @@ export function GoalForm({ goal, onClose }: GoalFormProps) {
     status: goal?.status || 'not-started' as GoalStatus,
     priority: goal?.priority || 'medium' as GoalPriority,
     deadline: goal?.deadline ? goal.deadline.toISOString().split('T')[0] : '',
+    isFinalGoal: goal?.isFinalGoal || false,
   });
 
   const [touched, setTouched] = useState({
@@ -46,6 +47,8 @@ export function GoalForm({ goal, onClose }: GoalFormProps) {
       timeSpent: goal?.timeSpent || 0,
       isShared: goal?.isShared || false,
       sharedWith: goal?.sharedWith || [],
+      isFinalGoal: formData.isFinalGoal,
+      mainGoalCompleted: goal?.mainGoalCompleted || false,
     };
 
     if (goal) {
@@ -175,6 +178,40 @@ export function GoalForm({ goal, onClose }: GoalFormProps) {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+        </div>
+
+        {/* Final Goal Checkbox */}
+        <div className="flex items-start gap-3 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+          <input
+            type="checkbox"
+            id="isFinalGoal"
+            checked={formData.isFinalGoal}
+            onChange={(e) => setFormData({ ...formData, isFinalGoal: e.target.checked })}
+            className="mt-1 w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+          />
+          <label htmlFor="isFinalGoal" className="flex-1 text-sm text-purple-900 cursor-pointer">
+            <div className="flex items-center gap-2">
+              <strong>Set as final goal</strong>
+              <div className="relative group">
+                <HelpCircle className="w-4 h-4 text-purple-600 cursor-help" />
+                {/* Tooltip */}
+                <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-80 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-lg z-10">
+                  <p className="mb-2">
+                    When checked, the main goal itself becomes a completable step.
+                  </p>
+                  <p className="mb-2">
+                    This means achieving the main goal will be counted as part of the progress 
+                    (e.g., if you have 2 sub-goals, progress will be calculated as completed items / 3 total).
+                  </p>
+                  <p>
+                    Perfect for goals like "Save 1000 PLN" where completing the main goal is the final achievement.
+                  </p>
+                  {/* Arrow */}
+                  <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                </div>
+              </div>
+            </div>
+          </label>
         </div>
 
         {/* Helper Text */}

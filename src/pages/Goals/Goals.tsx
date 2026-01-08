@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useApp } from '../../contexts/AppContext';
-import { Plus } from 'lucide-react';
+import { useToast } from '../../contexts/ToastContext';
+import { Plus, Trash2, Copy, AlertTriangle } from 'lucide-react';
 import type { Goal, GoalCategory, GoalStatus } from '../../types';
-import { GoalForm, SubGoalForm, GoalNotificationSettings } from '../../components/Goals';
+import { GoalForm, SubGoalForm, GoalNotificationSettings, ConfirmationDialog } from '../../components/Goals';
 import { GoalFilters, GoalListItem, EmptyGoalsState } from '../../components/GoalsList';
 
 const Goals = () => {
   const { goals, deleteGoal, updateGoal, addGoal, addSubGoal, updateSubGoal, toggleSubGoal, deleteSubGoal } = useApp();
+  const { showToast } = useToast();
   const [searchParams] = useSearchParams();
   const selectedGoalId = searchParams.get('goalId');
 
@@ -15,12 +17,15 @@ const Goals = () => {
   const [filterCategory, setFilterCategory] = useState<GoalCategory | 'all'>('all');
   const [filterStatus, setFilterStatus] = useState<GoalStatus | 'all'>('all');
   const [groupByPriority, setGroupByPriority] = useState(false);
+  const [hideCompleted, setHideCompleted] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [expandedGoals, setExpandedGoals] = useState<Set<string>>(new Set(selectedGoalId ? [selectedGoalId] : []));
   const [editingSubGoal, setEditingSubGoal] = useState<{ goalId: string; subGoal: any } | null>(null);
   const [addingSubGoalTo, setAddingSubGoalTo] = useState<string | null>(null);
   const [notificationGoal, setNotificationGoal] = useState<Goal | null>(null);
+  const [deleteConfirmGoal, setDeleteConfirmGoal] = useState<Goal | null>(null);
+  const [duplicateConfirmGoal, setDuplicateConfirmGoal] = useState<Goal | null>(null);
   const goalRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   // Expand selected goal if provided in URL and scroll to it
@@ -53,7 +58,8 @@ const Goals = () => {
                          goal.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = filterCategory === 'all' || goal.category === filterCategory;
     const matchesStatus = filterStatus === 'all' || goal.status === filterStatus;
-    return matchesSearch && matchesCategory && matchesStatus;
+    const matchesHideCompleted = !hideCompleted || goal.status !== 'completed';
+    return matchesSearch && matchesCategory && matchesStatus && matchesHideCompleted;
   });
 
   const toggleExpanded = (goalId: string) => {
@@ -71,27 +77,62 @@ const Goals = () => {
     setShowForm(true);
   };
 
-  const handleDelete = (goalId: string) => {
-    if (confirm('Are you sure you want to delete this goal?')) {
-      deleteGoal(goalId);
+  const handleDeleteClick = (goal: Goal) => {
+    setDeleteConfirmGoal(goal);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteConfirmGoal) {
+      // Store the goal for potential undo
+      const deletedGoal = { ...deleteConfirmGoal };
+      
+      // Delete immediately
+      deleteGoal(deleteConfirmGoal.id);
+      setDeleteConfirmGoal(null);
+      
+      // Show toast with undo option
+      showToast({
+        message: `Deleted "${deletedGoal.title}"`,
+        type: 'warning',
+        duration: 10000, // 10 seconds
+        onUndo: () => {
+          // Restore the deleted goal
+          addGoal(deletedGoal);
+        },
+        undoText: 'Undo'
+      });
     }
   };
 
-  const handleDuplicate = (goal: Goal) => {
-    const duplicatedGoal: Goal = {
-      ...goal,
-      id: Date.now().toString(),
-      title: `${goal.title} (Copy)`,
-      createdAt: new Date(),
-      subGoals: goal.subGoals.map(sg => ({
-        ...sg,
-        id: `${Date.now()}-${Math.random()}`,
-        completed: false,
+  const handleDuplicateClick = (goal: Goal) => {
+    setDuplicateConfirmGoal(goal);
+  };
+
+  const handleDuplicateConfirm = () => {
+    if (duplicateConfirmGoal) {
+      const duplicatedGoal: Goal = {
+        ...duplicateConfirmGoal,
+        id: Date.now().toString(),
+        title: `${duplicateConfirmGoal.title} (Copy)`,
         createdAt: new Date(),
-        completedAt: undefined,
-      })),
-    };
-    addGoal(duplicatedGoal);
+        subGoals: duplicateConfirmGoal.subGoals.map(sg => ({
+          ...sg,
+          id: `${Date.now()}-${Math.random()}`,
+          completed: false,
+          createdAt: new Date(),
+          completedAt: undefined,
+        })),
+      };
+      addGoal(duplicatedGoal);
+      setDuplicateConfirmGoal(null);
+      
+      // Show success toast
+      showToast({
+        message: `Duplicated "${duplicateConfirmGoal.title}"`,
+        type: 'success',
+        duration: 3000, // 3 seconds for success messages
+      });
+    }
   };
 
   const groupedGoals = groupByPriority
@@ -111,14 +152,15 @@ const Goals = () => {
           isExpanded={isExpanded}
           onToggleExpand={() => toggleExpanded(goal.id)}
           onEdit={() => handleEdit(goal)}
-          onDelete={() => handleDelete(goal.id)}
-          onDuplicate={() => handleDuplicate(goal)}
+          onDelete={() => handleDeleteClick(goal)}
+          onDuplicate={() => handleDuplicateClick(goal)}
           onNotificationSettings={() => setNotificationGoal(goal)}
           onAddSubGoal={() => setAddingSubGoalTo(goal.id)}
           onEditSubGoal={(subGoal) => setEditingSubGoal({ goalId: goal.id, subGoal })}
           onToggleSubGoal={(subGoalId) => toggleSubGoal(goal.id, subGoalId)}
           onDeleteSubGoal={(subGoalId) => deleteSubGoal(goal.id, subGoalId)}
           onStatusChange={(status) => updateGoal(goal.id, { ...goal, status })}
+          onToggleMainGoal={(completed) => updateGoal(goal.id, { ...goal, mainGoalCompleted: completed })}
         />
       </div>
     );
@@ -168,6 +210,8 @@ const Goals = () => {
         onStatusChange={setFilterStatus}
         groupByPriority={groupByPriority}
         onGroupByPriorityChange={setGroupByPriority}
+        hideCompleted={hideCompleted}
+        onHideCompletedChange={setHideCompleted}
       />
 
       {/* Goals List */}
@@ -237,6 +281,32 @@ const Goals = () => {
           }}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={deleteConfirmGoal !== null}
+        onClose={() => setDeleteConfirmGoal(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Goal?"
+        message={`Are you sure you want to delete "${deleteConfirmGoal?.title}"? This action cannot be undone and will also remove all sub-goals.`}
+        confirmText="Delete Goal"
+        cancelText="Cancel"
+        variant="destructive"
+        icon={<Trash2 className="w-6 h-6 text-red-600" />}
+      />
+
+      {/* Duplicate Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={duplicateConfirmGoal !== null}
+        onClose={() => setDuplicateConfirmGoal(null)}
+        onConfirm={handleDuplicateConfirm}
+        title="Duplicate Goal?"
+        message={`Create a copy of "${duplicateConfirmGoal?.title}"? The duplicated goal will include all sub-goals but they will be marked as incomplete.`}
+        confirmText="Duplicate Goal"
+        cancelText="Cancel"
+        variant="default"
+        icon={<Copy className="w-6 h-6 text-blue-600" />}
+      />
     </div>
   );
 };
